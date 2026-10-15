@@ -31,18 +31,18 @@ workflows:
       - name: Set up keychain and fetch/create signing files
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files "com.vorteq.trade" \
-            --type IOS_APP_STORE \
-            --create
-      - name: Set up code signing settings on Xcode project
-        script: |
-          xcode-project use-profiles
-      - name: Increment build number
-        script: |
-          cd ios/App
-          BUILD_NUM=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_CONNECT_APP_ID" 2>/dev/null || echo "0")
-          if ! [[ "$BUILD_NUM" =~ ^[0-9]+$ ]]; then
-            BUILD_NUM=0
+          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
+            echo "Generating RSA private key for iOS distribution certificate..."
+            openssl genrsa -out /tmp/dist_key 2048
+            export CERTIFICATE_PRIVATE_KEY=$(cat /tmp/dist_key)
+            app-store-connect fetch-signing-files "com.vorteq.trade" \
+              --type IOS_APP_STORE \
+              --certificate-key "@file:/tmp/dist_key" \
+              --create
+          else
+            app-store-connect fetch-signing-files "com.vorteq.trade" \
+              --type IOS_APP_STORE \
+              --create
           fi
           agvtool new-version -all $(($BUILD_NUM + 1))
       - name: Build IPA for TestFlight
