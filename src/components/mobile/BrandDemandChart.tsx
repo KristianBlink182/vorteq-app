@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
-  CartesianGrid 
-} from 'recharts';
-import { TrendingUp, BarChart3, Layers, Info } from 'lucide-react';
+import { TrendingUp, BarChart3 } from 'lucide-react';
 
 interface DayDemand {
   day: string;
@@ -33,8 +23,9 @@ const DEMAND_DATA_7_DAYS: DayDemand[] = [
 export const BrandDemandChart: React.FC = () => {
   const [chartMode, setChartMode] = useState<'grouped' | 'stacked'>('grouped');
   const [activeBrand, setActiveBrand] = useState<'all' | 'Apple' | 'Samsung' | 'Xiaomi'>('all');
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  // Calculate totals and leaders
+  // Totals & Shares
   const totalApple = DEMAND_DATA_7_DAYS.reduce((acc, curr) => acc + curr.Apple, 0);
   const totalSamsung = DEMAND_DATA_7_DAYS.reduce((acc, curr) => acc + curr.Samsung, 0);
   const totalXiaomi = DEMAND_DATA_7_DAYS.reduce((acc, curr) => acc + curr.Xiaomi, 0);
@@ -44,34 +35,35 @@ export const BrandDemandChart: React.FC = () => {
   const samsungPct = ((totalSamsung / grandTotal) * 100).toFixed(1);
   const xiaomiPct = ((totalXiaomi / grandTotal) * 100).toFixed(1);
 
-  // Custom high-contrast tooltip styled for Vorteq B2B dark UI
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const dataPoint = DEMAND_DATA_7_DAYS.find((d) => d.day === label);
-      return (
-        <div className="bg-[#0B192C] border border-slate-700/90 rounded-xl p-3 shadow-2xl text-xs space-y-1.5 min-w-[170px] backdrop-blur-md">
-          <div className="flex items-center justify-between border-b border-slate-700/80 pb-1 font-mono">
-            <span className="font-bold text-white">{dataPoint ? `${dataPoint.day} (${dataPoint.date})` : label}</span>
-            <span className="text-[#00B074] font-bold">
-              {dataPoint ? `${dataPoint.total.toLocaleString()} uds` : ''}
-            </span>
-          </div>
-          {payload.map((entry: any) => (
-            <div key={entry.name} className="flex items-center justify-between gap-3 text-[11px]">
-              <span className="flex items-center gap-1.5 font-medium" style={{ color: entry.color }}>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                {entry.name}:
-              </span>
-              <span className="font-mono font-bold text-slate-100">
-                {entry.value.toLocaleString()} <span className="text-[10px] text-slate-400 font-sans">uds</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
+  // SVG Chart Dimensions
+  const svgWidth = 360;
+  const svgHeight = 180;
+  const padLeft = 32;
+  const padRight = 12;
+  const padTop = 15;
+  const padBottom = 25;
+  const chartW = svgWidth - padLeft - padRight;
+  const chartH = svgHeight - padTop - padBottom;
+
+  // Max value calculation
+  const maxVal = chartMode === 'stacked'
+    ? Math.max(...DEMAND_DATA_7_DAYS.map(d => {
+        let sum = 0;
+        if (activeBrand === 'all' || activeBrand === 'Apple') sum += d.Apple;
+        if (activeBrand === 'all' || activeBrand === 'Samsung') sum += d.Samsung;
+        if (activeBrand === 'all' || activeBrand === 'Xiaomi') sum += d.Xiaomi;
+        return sum;
+      })) * 1.15
+    : Math.max(...DEMAND_DATA_7_DAYS.map(d => Math.max(
+        activeBrand === 'all' || activeBrand === 'Apple' ? d.Apple : 0,
+        activeBrand === 'all' || activeBrand === 'Samsung' ? d.Samsung : 0,
+        activeBrand === 'all' || activeBrand === 'Xiaomi' ? d.Xiaomi : 0
+      ))) * 1.15;
+
+  const yTicks = [0, Math.round(maxVal / 2), Math.round(maxVal)];
+  const colWidth = chartW / DEMAND_DATA_7_DAYS.length;
+
+  const hoveredData = hoveredIdx !== null ? DEMAND_DATA_7_DAYS[hoveredIdx] : null;
 
   return (
     <div className="px-4">
@@ -95,6 +87,7 @@ export const BrandDemandChart: React.FC = () => {
           {/* Grouped vs Stacked pill */}
           <div className="flex items-center bg-slate-900/90 p-0.5 rounded-lg border border-slate-800 text-[10px] font-semibold shrink-0">
             <button
+              type="button"
               onClick={() => setChartMode('grouped')}
               className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
                 chartMode === 'grouped'
@@ -105,6 +98,7 @@ export const BrandDemandChart: React.FC = () => {
               Barras
             </button>
             <button
+              type="button"
               onClick={() => setChartMode('stacked')}
               className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
                 chartMode === 'stacked'
@@ -120,6 +114,7 @@ export const BrandDemandChart: React.FC = () => {
         {/* Quick Brand Summary KPI Cards */}
         <div className="grid grid-cols-3 gap-2 text-center">
           <button
+            type="button"
             onClick={() => setActiveBrand(activeBrand === 'Apple' ? 'all' : 'Apple')}
             className={`p-2 rounded-xl border transition-all text-left cursor-pointer ${
               activeBrand === 'Apple'
@@ -141,6 +136,7 @@ export const BrandDemandChart: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveBrand(activeBrand === 'Samsung' ? 'all' : 'Samsung')}
             className={`p-2 rounded-xl border transition-all text-left cursor-pointer ${
               activeBrand === 'Samsung'
@@ -162,6 +158,7 @@ export const BrandDemandChart: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveBrand(activeBrand === 'Xiaomi' ? 'all' : 'Xiaomi')}
             className={`p-2 rounded-xl border transition-all text-left cursor-pointer ${
               activeBrand === 'Xiaomi'
@@ -183,74 +180,250 @@ export const BrandDemandChart: React.FC = () => {
           </button>
         </div>
 
-        {/* Recharts BarChart Interactive Viewport */}
-        <div className="w-full h-56 relative pt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={DEMAND_DATA_7_DAYS}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              barGap={2}
-            >
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                vertical={false} 
-                stroke="#1E293B" 
-                opacity={0.7} 
-              />
-              <XAxis 
-                dataKey="day" 
-                tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: 'monospace' }}
-                axisLine={{ stroke: '#334155' }}
-                tickLine={false}
-              />
-              <YAxis 
-                tick={{ fill: '#64748B', fontSize: 10, fontFamily: 'monospace' }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(val) => `${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}`}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                verticalAlign="top" 
-                height={26}
-                formatter={(val) => (
-                  <span className="text-[11px] text-slate-300 font-medium mr-2">
-                    {val}
-                  </span>
-                )}
-              />
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-4 text-[11px] pt-1">
+          {(activeBrand === 'all' || activeBrand === 'Apple') && (
+            <span className="flex items-center gap-1.5 text-slate-300 font-medium">
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#38BDF8]" /> Apple
+            </span>
+          )}
+          {(activeBrand === 'all' || activeBrand === 'Samsung') && (
+            <span className="flex items-center gap-1.5 text-slate-300 font-medium">
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#818CF8]" /> Samsung
+            </span>
+          )}
+          {(activeBrand === 'all' || activeBrand === 'Xiaomi') && (
+            <span className="flex items-center gap-1.5 text-slate-300 font-medium">
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#F97316]" /> Xiaomi
+            </span>
+          )}
+        </div>
 
-              {(activeBrand === 'all' || activeBrand === 'Apple') && (
-                <Bar 
-                  dataKey="Apple" 
-                  name="Apple"
-                  fill="#38BDF8" 
-                  stackId={chartMode === 'stacked' ? 'a' : undefined}
-                  radius={chartMode === 'stacked' ? [0, 0, 0, 0] : [4, 4, 0, 0]} 
-                />
-              )}
+        {/* High-Performance SVG Chart */}
+        <div className="relative w-full pt-1">
+          <svg 
+            viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
+            className="w-full h-48 select-none overflow-visible"
+          >
+            {/* Horizontal Grid lines & Y-axis labels */}
+            {yTicks.map((tick, i) => {
+              const y = padTop + chartH - (tick / maxVal) * chartH;
+              return (
+                <g key={i}>
+                  <line 
+                    x1={padLeft} 
+                    y1={y} 
+                    x2={padLeft + chartW} 
+                    y2={y} 
+                    stroke="#1E293B" 
+                    strokeDasharray="3 3"
+                    strokeWidth="1"
+                  />
+                  <text 
+                    x={padLeft - 4} 
+                    y={y + 3} 
+                    textAnchor="end" 
+                    fill="#64748B" 
+                    fontSize="9" 
+                    fontFamily="monospace"
+                  >
+                    {tick >= 1000 ? `${(tick / 1000).toFixed(1)}k` : tick}
+                  </text>
+                </g>
+              );
+            })}
 
-              {(activeBrand === 'all' || activeBrand === 'Samsung') && (
-                <Bar 
-                  dataKey="Samsung" 
-                  name="Samsung"
-                  fill="#818CF8" 
-                  stackId={chartMode === 'stacked' ? 'a' : undefined}
-                  radius={chartMode === 'stacked' ? [0, 0, 0, 0] : [4, 4, 0, 0]} 
-                />
-              )}
+            {/* Base axis line */}
+            <line 
+              x1={padLeft} 
+              y1={padTop + chartH} 
+              x2={padLeft + chartW} 
+              y2={padTop + chartH} 
+              stroke="#334155" 
+              strokeWidth="1" 
+            />
 
-              {(activeBrand === 'all' || activeBrand === 'Xiaomi') && (
-                <Bar 
-                  dataKey="Xiaomi" 
-                  name="Xiaomi"
-                  fill="#F97316" 
-                  stackId={chartMode === 'stacked' ? 'a' : undefined}
-                  radius={chartMode === 'stacked' ? [4, 4, 0, 0] : [4, 4, 0, 0]} 
-                />
-              )}
-            </BarChart>
-          </ResponsiveContainer>
+            {/* Bars */}
+            {DEMAND_DATA_7_DAYS.map((d, idx) => {
+              const colX = padLeft + idx * colWidth;
+              const isHov = hoveredIdx === idx;
+
+              if (chartMode === 'grouped') {
+                const brands: { key: 'Apple' | 'Samsung' | 'Xiaomi'; val: number; color: string }[] = [];
+                if (activeBrand === 'all' || activeBrand === 'Apple') brands.push({ key: 'Apple', val: d.Apple, color: '#38BDF8' });
+                if (activeBrand === 'all' || activeBrand === 'Samsung') brands.push({ key: 'Samsung', val: d.Samsung, color: '#818CF8' });
+                if (activeBrand === 'all' || activeBrand === 'Xiaomi') brands.push({ key: 'Xiaomi', val: d.Xiaomi, color: '#F97316' });
+
+                const barWidth = Math.max(4, (colWidth - 8) / brands.length - 2);
+
+                return (
+                  <g 
+                    key={d.day}
+                    onMouseEnter={() => setHoveredIdx(idx)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    onClick={() => setHoveredIdx(hoveredIdx === idx ? null : idx)}
+                    className="cursor-pointer"
+                  >
+                    {/* Hover column background */}
+                    {isHov && (
+                      <rect
+                        x={colX + 2}
+                        y={padTop}
+                        width={colWidth - 4}
+                        height={chartH}
+                        fill="#38BDF8"
+                        fillOpacity="0.08"
+                        rx="4"
+                      />
+                    )}
+
+                    {brands.map((b, bIdx) => {
+                      const barH = (b.val / maxVal) * chartH;
+                      const barX = colX + 4 + bIdx * (barWidth + 2);
+                      const barY = padTop + chartH - barH;
+                      return (
+                        <rect
+                          key={b.key}
+                          x={barX}
+                          y={barY}
+                          width={barWidth}
+                          height={Math.max(2, barH)}
+                          fill={b.color}
+                          rx="2"
+                          opacity={isHov ? 1 : 0.88}
+                        />
+                      );
+                    })}
+
+                    {/* X-axis Label */}
+                    <text
+                      x={colX + colWidth / 2}
+                      y={padTop + chartH + 16}
+                      textAnchor="middle"
+                      fill={isHov ? '#38BDF8' : '#94A3B8'}
+                      fontSize="10"
+                      fontFamily="monospace"
+                      fontWeight={isHov ? 'bold' : 'normal'}
+                    >
+                      {d.day}
+                    </text>
+                  </g>
+                );
+              }
+
+              // Stacked Mode
+              const showApple = activeBrand === 'all' || activeBrand === 'Apple';
+              const showSamsung = activeBrand === 'all' || activeBrand === 'Samsung';
+              const showXiaomi = activeBrand === 'all' || activeBrand === 'Xiaomi';
+
+              const hApple = showApple ? (d.Apple / maxVal) * chartH : 0;
+              const hSamsung = showSamsung ? (d.Samsung / maxVal) * chartH : 0;
+              const hXiaomi = showXiaomi ? (d.Xiaomi / maxVal) * chartH : 0;
+
+              const barW = Math.max(10, colWidth - 14);
+              const barX = colX + (colWidth - barW) / 2;
+
+              let currentY = padTop + chartH;
+
+              const yApple = currentY - hApple;
+              currentY -= hApple;
+
+              const ySamsung = currentY - hSamsung;
+              currentY -= hSamsung;
+
+              const yXiaomi = currentY - hXiaomi;
+
+              return (
+                <g 
+                  key={d.day}
+                  onMouseEnter={() => setHoveredIdx(idx)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                  onClick={() => setHoveredIdx(hoveredIdx === idx ? null : idx)}
+                  className="cursor-pointer"
+                >
+                  {isHov && (
+                    <rect
+                      x={colX + 2}
+                      y={padTop}
+                      width={colWidth - 4}
+                      height={chartH}
+                      fill="#38BDF8"
+                      fillOpacity="0.08"
+                      rx="4"
+                    />
+                  )}
+
+                  {showApple && hApple > 0 && (
+                    <rect
+                      x={barX}
+                      y={yApple}
+                      width={barW}
+                      height={hApple}
+                      fill="#38BDF8"
+                      rx="1"
+                    />
+                  )}
+                  {showSamsung && hSamsung > 0 && (
+                    <rect
+                      x={barX}
+                      y={ySamsung}
+                      width={barW}
+                      height={hSamsung}
+                      fill="#818CF8"
+                      rx="1"
+                    />
+                  )}
+                  {showXiaomi && hXiaomi > 0 && (
+                    <rect
+                      x={barX}
+                      y={yXiaomi}
+                      width={barW}
+                      height={hXiaomi}
+                      fill="#F97316"
+                      rx="2"
+                    />
+                  )}
+
+                  {/* X-axis Label */}
+                  <text
+                    x={colX + colWidth / 2}
+                    y={padTop + chartH + 16}
+                    textAnchor="middle"
+                    fill={isHov ? '#38BDF8' : '#94A3B8'}
+                    fontSize="10"
+                    fontFamily="monospace"
+                    fontWeight={isHov ? 'bold' : 'normal'}
+                  >
+                    {d.day}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Interactive Tooltip Card */}
+          {hoveredData && (
+            <div className="mt-2 bg-[#0B192C] border border-slate-700 rounded-xl p-3 shadow-2xl text-xs space-y-1.5 transition-all">
+              <div className="flex items-center justify-between border-b border-slate-700/80 pb-1 font-mono">
+                <span className="font-bold text-white">{hoveredData.day} ({hoveredData.date})</span>
+                <span className="text-[#00B074] font-bold">{hoveredData.total.toLocaleString()} uds total</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-[11px] pt-0.5">
+                <div className="flex items-center gap-1.5 font-medium text-[#38BDF8]">
+                  <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
+                  <span>Apple: <strong>{hoveredData.Apple.toLocaleString()}</strong></span>
+                </div>
+                <div className="flex items-center gap-1.5 font-medium text-[#818CF8]">
+                  <span className="w-2 h-2 rounded-full bg-[#818CF8]" />
+                  <span>Samsung: <strong>{hoveredData.Samsung.toLocaleString()}</strong></span>
+                </div>
+                <div className="flex items-center gap-1.5 font-medium text-[#F97316]">
+                  <span className="w-2 h-2 rounded-full bg-[#F97316]" />
+                  <span>Xiaomi: <strong>{hoveredData.Xiaomi.toLocaleString()}</strong></span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Market Trend Insight footer */}

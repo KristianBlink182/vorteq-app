@@ -2,6 +2,7 @@ export type Language = 'es' | 'en';
 export type AppViewMode = 'mobile' | 'web'; // User requested separated web and app sharing same DB!
 
 export type UserRole = 'trader' | 'admin';
+export type BusinessRole = 'vendor' | 'customer';
 
 export interface UserAccount {
   id: string;
@@ -15,6 +16,22 @@ export interface UserAccount {
   companySize: string; // e.g. "$10M - $25M"
   verifiedStatus: 'verified' | 'pending' | 'unverified';
   role: UserRole;
+  accountType: BusinessRole; // 'vendor' (Proveedor/Mayorista) | 'customer' (Cliente/Comprador B2B)
+  taxId?: string; // RUC / Tax ID / NIF Fiscal
+  city?: string;
+  address?: string;
+  password?: string;
+  // Specific to VENDOR (Proveedor)
+  vendorType?: string; // Distribuidor Oficial, Importador Mayorista, Broker, Fabricante
+  vendorCategories?: string[]; // Categorías de inventario que provee
+  vendorSupplyCapacity?: string; // Capacidad mensual estimada de stock
+  vendorMoq?: string; // Pedido mínimo requerido (MOQ)
+  vendorWarrantyTerms?: string; // Días de garantía y política RMA
+  // Specific to CUSTOMER (Cliente / Comprador)
+  customerBusinessType?: string; // Tienda Retail, E-commerce, Cadena Minorista, Servicio Técnico, Corporativo
+  customerMonthlyBudget?: string; // Presupuesto mensual estimado de compra
+  customerPaymentMethods?: string[]; // Transferencia Bancaria SWIFT, Carta de Crédito, USDT, Contraentrega
+  customerDeliveryPref?: string; // Retiro en almacén, Envío aéreo express, Flete marítimo
   avatarText?: string;
   avatarBgColor?: string;
   endorsements: string[]; // e.g. ["mobi hub", "LinkedIn", "WhatsApp", "importando USA", "GSM B2B"]

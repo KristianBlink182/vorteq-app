@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MobileApp } from './components/mobile/MobileApp';
 import { WebAppDashboard } from './components/web/WebAppDashboard';
 import { AuthModal } from './components/auth/AuthModal';
+import { AuthScreen } from './components/auth/AuthScreen';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { CreateOfferModal } from './components/mobile/CreateOfferModal';
 import { SplashScreen } from './components/mobile/SplashScreen';
@@ -10,7 +11,9 @@ import {
   getDatabase, 
   saveUsers, 
   saveOffers, 
-  setCurrentUser 
+  setCurrentUser,
+  getIsAuthenticated,
+  setIsAuthenticated
 } from './services/mockDatabase';
 import { 
   UserAccount, 
@@ -19,11 +22,14 @@ import {
   FeaturedStory,
   AppViewMode 
 } from './types';
-import { Smartphone, Globe, ShieldCheck, UserPlus, LogIn, Check, Play } from 'lucide-react';
+import { Smartphone, Globe, ShieldCheck, UserPlus, LogIn, Check, Play, LogOut, Store, ShoppingBag } from 'lucide-react';
 
 export default function App() {
   // 4-second Splash Screen state
   const [showSplash, setShowSplash] = useState<boolean>(true);
+
+  // Authentication state (persisted in localStorage)
+  const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() => getIsAuthenticated());
 
   // Load shared database
   const [db, setDb] = useState(() => getDatabase());
@@ -57,14 +63,26 @@ export default function App() {
   const handleLoginSuccess = (user: UserAccount) => {
     setCurrentUserState(user);
     setCurrentUser(user);
+    setIsAuthenticated(true);
+    setIsAuthenticatedState(true);
+    setIsAuthModalOpen(false);
 
     // If new user, add to database
     if (!users.some((u) => u.id === user.id)) {
       handleUsersUpdate([user, ...users]);
     }
 
-    setBannerToast(`¡Sesión iniciada como ${user.fullName} (${user.companyName})!`);
+    const roleLabel = user.accountType === 'vendor' ? 'VENDOR (Proveedor)' : 'CUSTOMER (Comprador)';
+    setBannerToast(`¡Bienvenido! Sesión activa como ${user.fullName} [${roleLabel}]`);
     setTimeout(() => setBannerToast(null), 3500);
+  };
+
+  // Logout callback
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setIsAuthenticatedState(false);
+    setBannerToast('Sesión finalizada. Regresando a la pantalla de acceso.');
+    setTimeout(() => setBannerToast(null), 3000);
   };
 
   // Admin verifies user
@@ -169,6 +187,25 @@ export default function App() {
           <span className="text-slate-400 font-mono text-[11px] hidden sm:inline">
             {viewMode === 'mobile' ? 'Mobile App Experience 2026' : 'Desktop B2B Trading Hub'}
           </span>
+          {isAuthenticated && (
+            <span className={`hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+              currentUser.accountType === 'vendor'
+                ? 'bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40'
+                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+            }`}>
+              {currentUser.accountType === 'vendor' ? (
+                <>
+                  <Store className="w-3 h-3" />
+                  <span>VENDOR · {currentUser.companyName}</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-3 h-3" />
+                  <span>CUSTOMER · {currentUser.companyName}</span>
+                </>
+              )}
+            </span>
+          )}
         </div>
 
         {/* Action Controls */}
@@ -220,8 +257,20 @@ export default function App() {
             className="flex items-center gap-1 px-2.5 py-1 bg-[#0A192F] hover:bg-[#15253F] text-slate-200 border border-slate-700 rounded-lg font-semibold transition-colors cursor-pointer"
           >
             <UserPlus className="w-3.5 h-3.5 text-[#00B074]" />
-            <span className="hidden sm:inline">Usuario / Registro</span>
+            <span className="hidden sm:inline">{isAuthenticated ? 'Cambiar Cuenta' : 'Acceso / Registro'}</span>
           </button>
+
+          {/* Logout Button in Top Bar */}
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              title="Cerrar sesión y volver al login"
+              className="flex items-center gap-1 px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 rounded-lg font-semibold transition-colors cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Cerrar Sesión</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -233,47 +282,59 @@ export default function App() {
         </div>
       )}
 
-      {/* Main View Display */}
-      {isAdminPanelOpen ? (
-        <AdminPanel
-          users={users}
-          offers={offers}
-          onVerifyUser={handleVerifyUser}
-          onToggleUserRole={handleToggleUserRole}
-          onDeleteOffer={handleDeleteOffer}
-          onClose={() => setIsAdminPanelOpen(false)}
+      {/* Flow check: If Splash finished and user NOT authenticated, render AuthScreen */}
+      {!showSplash && !isAuthenticated ? (
+        <AuthScreen
+          availableUsers={users}
+          onLoginSuccess={handleLoginSuccess}
         />
-      ) : viewMode === 'mobile' ? (
-        /* Mobile App View with Modern 2026 Fintech Structure */
-        <div className="flex-1 py-4 sm:py-6 px-2 flex justify-center items-start">
-          <MobileApp
-            currentUser={currentUser}
-            users={users}
-            offers={offers}
-            livePrices={livePrices}
-            stories={db.stories}
-            onOpenCreateOffer={() => setIsCreateOfferOpen(true)}
-            onOpenAuthModal={() => setIsAuthModalOpen(true)}
-            onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-            onSwitchToWebApp={() => setViewMode('web')}
-            onSaveOfferToggle={handleSaveOfferToggle}
-            onIgnoreOfferToggle={handleIgnoreOfferToggle}
-            onUpdatePrivacy={handleUpdatePrivacy}
-          />
-        </div>
       ) : (
-        /* Web App View (Separated Desktop Web Platform sharing exact same DB) */
-        <WebAppDashboard
-          currentUser={currentUser}
-          users={users}
-          offers={offers}
-          livePrices={livePrices}
-          onOpenCreateOffer={() => setIsCreateOfferOpen(true)}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-          onSwitchToMobileApp={() => setViewMode('mobile')}
-          onSaveOfferToggle={handleSaveOfferToggle}
-        />
+        /* Authenticated Main View: Mobile or Web (Interconnected) */
+        <>
+          {isAdminPanelOpen ? (
+            <AdminPanel
+              users={users}
+              offers={offers}
+              onVerifyUser={handleVerifyUser}
+              onToggleUserRole={handleToggleUserRole}
+              onDeleteOffer={handleDeleteOffer}
+              onClose={() => setIsAdminPanelOpen(false)}
+            />
+          ) : viewMode === 'mobile' ? (
+            /* Mobile App View with Modern 2026 Fintech Structure */
+            <div className="flex-1 py-4 sm:py-6 px-2 flex justify-center items-start">
+              <MobileApp
+                currentUser={currentUser}
+                users={users}
+                offers={offers}
+                livePrices={livePrices}
+                stories={db.stories}
+                onOpenCreateOffer={() => setIsCreateOfferOpen(true)}
+                onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+                onSwitchToWebApp={() => setViewMode('web')}
+                onSaveOfferToggle={handleSaveOfferToggle}
+                onIgnoreOfferToggle={handleIgnoreOfferToggle}
+                onUpdatePrivacy={handleUpdatePrivacy}
+                onLogout={handleLogout}
+              />
+            </div>
+          ) : (
+            /* Web App View (Separated Desktop Web Platform sharing exact same DB) */
+            <WebAppDashboard
+              currentUser={currentUser}
+              users={users}
+              offers={offers}
+              livePrices={livePrices}
+              onOpenCreateOffer={() => setIsCreateOfferOpen(true)}
+              onOpenAuthModal={() => setIsAuthModalOpen(true)}
+              onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+              onSwitchToMobileApp={() => setViewMode('mobile')}
+              onSaveOfferToggle={handleSaveOfferToggle}
+              onLogout={handleLogout}
+            />
+          )}
+        </>
       )}
 
       {/* Global Modals */}

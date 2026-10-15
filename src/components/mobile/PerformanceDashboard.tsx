@@ -1,31 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  ResponsiveContainer, 
-  CartesianGrid,
-  Legend,
-  ComposedChart,
-  Line
-} from 'recharts';
-import { 
   TrendingUp, 
   DollarSign, 
   PiggyBank, 
-  Zap, 
   Layers, 
   Calendar, 
   ArrowUpRight, 
-  ShieldCheck, 
   Award,
-  ChevronRight,
-  Filter,
-  Info,
   CheckCircle2
 } from 'lucide-react';
 import { UserAccount, ProductPriceLive } from '../../types';
@@ -136,12 +117,13 @@ const ARBITRAGE_HIGHLIGHTS = [
 ];
 
 export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
-  currentUser,
+  currentUser: _currentUser,
   onOpenFeed
 }) => {
   const [timeRange, setTimeRange] = useState<'30d' | '14d' | '7d'>('30d');
-  const [activeMetric, setActiveMetric] = useState<'all' | 'volume' | 'savings'>('all');
   const [volumeViewType, setVolumeViewType] = useState<'cumulative' | 'daily'>('cumulative');
+  const [hoveredVolIdx, setHoveredVolIdx] = useState<number | null>(null);
+  const [hoveredSavIdx, setHoveredSavIdx] = useState<number | null>(null);
 
   // Filter dataset by selected time range
   const filteredData = useMemo(() => {
@@ -177,74 +159,79 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
   const savingsRate = ((totalSavings / totalVolume) * 100).toFixed(1);
 
-  // Custom tooltips for Vorteq Dark theme
-  const VolumeTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const dataPoint = filteredData.find(d => d.date === label || d.dayShort === label);
-      return (
-        <div className="bg-[#0B192C]/95 border border-slate-700 rounded-xl p-3 shadow-2xl text-xs space-y-1 backdrop-blur-md min-w-[180px]">
-          <div className="text-slate-400 font-mono text-[10px] pb-1 border-b border-slate-800 flex justify-between">
-            <span>{dataPoint?.date || label}</span>
-            <span className="text-[#00B074] font-bold">{dataPoint?.deals} lotes cerrados</span>
-          </div>
-          <div className="flex justify-between items-center text-white font-mono pt-1">
-            <span className="text-slate-300">Volumen Diario:</span>
-            <span className="font-bold text-cyan-400">${dataPoint?.volume.toLocaleString()} USD</span>
-          </div>
-          <div className="flex justify-between items-center text-white font-mono">
-            <span className="text-slate-300">Acumulado 30D:</span>
-            <span className="font-bold text-[#00B074]">${dataPoint?.cumulativeVolume.toLocaleString()} USD</span>
-          </div>
-          <div className="flex justify-between items-center text-white font-mono pt-1 border-t border-slate-800/80">
-            <span className="text-emerald-350">Ahorro Arbitraje:</span>
-            <span className="font-bold text-emerald-400">+${dataPoint?.savings.toLocaleString()} USD</span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+  // Chart 1: Volume Area Chart geometry
+  const svgW = 360;
+  const svgH = 175;
+  const padL = 36;
+  const padR = 12;
+  const padT = 12;
+  const padB = 22;
+  const plotW = svgW - padL - padR;
+  const plotH = svgH - padT - padB;
 
-  const SavingsTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const dataPoint = filteredData.find(d => d.date === label || d.dayShort === label);
-      return (
-        <div className="bg-[#0B192C]/95 border border-slate-700 rounded-xl p-3 shadow-2xl text-xs space-y-1.5 backdrop-blur-md min-w-[200px]">
-          <div className="text-slate-400 font-mono text-[10px] pb-1 border-b border-slate-800 flex justify-between">
-            <span>{dataPoint?.date || label}</span>
-            <span className="text-[#00B074] font-bold">Total: +${dataPoint?.savings.toLocaleString()} USD</span>
-          </div>
-          <div className="space-y-1 font-mono text-[11px]">
-            <div className="flex justify-between text-slate-200">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#00B074]" />  iPhone / iPad:
-              </span>
-              <span className="font-bold text-[#00B074]">${dataPoint?.appleSavings.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-slate-200">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" /> Samsung Galaxy:
-              </span>
-              <span className="font-bold text-cyan-400">${dataPoint?.samsungSavings.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-slate-200">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-purple-400" /> MacBooks M-Series:
-              </span>
-              <span className="font-bold text-purple-400">${dataPoint?.macbookSavings.toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-      );
+  const maxVolumeVal = useMemo(() => {
+    const vals = filteredData.map(d => volumeViewType === 'cumulative' ? d.cumulativeVolume : d.volume);
+    return Math.max(...vals) * 1.1;
+  }, [filteredData, volumeViewType]);
+
+  const volPoints = useMemo(() => {
+    return filteredData.map((d, i) => {
+      const x = padL + (i / (filteredData.length - 1)) * plotW;
+      const val = volumeViewType === 'cumulative' ? d.cumulativeVolume : d.volume;
+      const y = padT + plotH - (val / maxVolumeVal) * plotH;
+      return { x, y, data: d };
+    });
+  }, [filteredData, volumeViewType, maxVolumeVal, plotW, plotH]);
+
+  const areaPath = useMemo(() => {
+    if (volPoints.length === 0) return '';
+    const firstX = volPoints[0].x;
+    const lastX = volPoints[volPoints.length - 1].x;
+    const baseY = padT + plotH;
+    let d = `M ${firstX} ${baseY} L ${firstX} ${volPoints[0].y}`;
+    for (let i = 1; i < volPoints.length; i++) {
+      // Smooth curve with bezier control points
+      const prev = volPoints[i - 1];
+      const curr = volPoints[i];
+      const cpX1 = prev.x + (curr.x - prev.x) / 2;
+      const cpY1 = prev.y;
+      const cpX2 = prev.x + (curr.x - prev.x) / 2;
+      const cpY2 = curr.y;
+      d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${curr.x} ${curr.y}`;
     }
-    return null;
-  };
+    d += ` L ${lastX} ${baseY} Z`;
+    return d;
+  }, [volPoints, plotH]);
+
+  const linePath = useMemo(() => {
+    if (volPoints.length === 0) return '';
+    let d = `M ${volPoints[0].x} ${volPoints[0].y}`;
+    for (let i = 1; i < volPoints.length; i++) {
+      const prev = volPoints[i - 1];
+      const curr = volPoints[i];
+      const cpX1 = prev.x + (curr.x - prev.x) / 2;
+      const cpY1 = prev.y;
+      const cpX2 = prev.x + (curr.x - prev.x) / 2;
+      const cpY2 = curr.y;
+      d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${curr.x} ${curr.y}`;
+    }
+    return d;
+  }, [volPoints]);
+
+  // Chart 2: Stacked Bar Chart for Savings
+  const maxSavingsVal = useMemo(() => {
+    const sums = filteredData.map(d => d.appleSavings + d.samsungSavings + d.macbookSavings);
+    return Math.max(...sums) * 1.15;
+  }, [filteredData]);
+
+  const barColW = plotW / filteredData.length;
+
+  const hoveredVol = hoveredVolIdx !== null ? filteredData[hoveredVolIdx] : null;
+  const hoveredSav = hoveredSavIdx !== null ? filteredData[hoveredSavIdx] : null;
 
   return (
     <div className="p-4 space-y-4">
-      {/* ======================================================== */}
-      {/* 1. TOP HEADER & TIMEFRAME SELECTOR                       */}
-      {/* ======================================================== */}
+      {/* 1. TOP HEADER & TIMEFRAME SELECTOR */}
       <div className="bg-gradient-to-br from-[#0B192C] via-[#091424] to-[#040911] border border-slate-800 rounded-2xl p-4 shadow-xl">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2.5">
@@ -274,6 +261,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
           <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
             <button
+              type="button"
               onClick={() => setTimeRange('7d')}
               className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
                 timeRange === '7d' 
@@ -284,6 +272,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               7 Días
             </button>
             <button
+              type="button"
               onClick={() => setTimeRange('14d')}
               className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
                 timeRange === '14d' 
@@ -294,6 +283,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               14 Días
             </button>
             <button
+              type="button"
               onClick={() => setTimeRange('30d')}
               className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
                 timeRange === '30d' 
@@ -307,11 +297,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* 2. PRIMARY STATS HERO (VOLUME & ARBITRAGE SAVINGS)       */}
-      {/* ======================================================== */}
+      {/* 2. PRIMARY STATS HERO */}
       <div className="grid grid-cols-2 gap-2.5">
-        {/* Card 1: Total Trade Volume */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-1.5 shadow-md relative overflow-hidden">
           <div className="w-20 h-20 rounded-full bg-cyan-500/5 absolute -right-6 -bottom-6 pointer-events-none" />
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -330,7 +317,6 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           </div>
         </div>
 
-        {/* Card 2: Total Arbitrage Savings */}
         <div className="bg-slate-900/90 border border-emerald-900/40 rounded-2xl p-3.5 space-y-1.5 shadow-md relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-emerald-950/20">
           <div className="w-20 h-20 rounded-full bg-[#00B074]/10 absolute -right-6 -bottom-6 pointer-events-none" />
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -350,9 +336,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* 3. CHART 1: HISTORICAL TRADE VOLUME GROWTH (RECHARTS)    */}
-      {/* ======================================================== */}
+      {/* 3. CHART 1: HISTORICAL TRADE VOLUME GROWTH (NATIVE SVG) */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
@@ -367,6 +351,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[10px] font-mono">
             <button
+              type="button"
               onClick={() => setVolumeViewType('cumulative')}
               className={`px-2 py-0.5 rounded cursor-pointer ${
                 volumeViewType === 'cumulative' 
@@ -377,6 +362,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               Acumulado
             </button>
             <button
+              type="button"
               onClick={() => setVolumeViewType('daily')}
               className={`px-2 py-0.5 rounded cursor-pointer ${
                 volumeViewType === 'daily' 
@@ -389,61 +375,132 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           </div>
         </div>
 
-        {/* Recharts Area/Bar Volume Component */}
-        <div className="h-56 w-full pt-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={filteredData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="volumeCumulativeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.45}/>
-                  <stop offset="95%" stopColor="#0B192C" stopOpacity={0.0}/>
-                </linearGradient>
-                <linearGradient id="volumeDailyGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00B074" stopOpacity={0.5}/>
-                  <stop offset="95%" stopColor="#00B074" stopOpacity={0.0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-              <XAxis 
-                dataKey="date" 
-                stroke="#64748b" 
-                fontSize={10} 
-                tickLine={false}
-                axisLine={{ stroke: '#334155' }}
-                interval={timeRange === '30d' ? 4 : timeRange === '14d' ? 2 : 0}
-              />
-              <YAxis 
-                stroke="#64748b" 
-                fontSize={10} 
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
-              />
-              <Tooltip content={<VolumeTooltip />} />
-              {volumeViewType === 'cumulative' ? (
-                <Area 
-                  type="monotone" 
-                  dataKey="cumulativeVolume" 
-                  stroke="#06b6d4" 
-                  strokeWidth={2.5} 
-                  fillOpacity={1} 
-                  fill="url(#volumeCumulativeGrad)" 
-                />
-              ) : (
-                <Area 
-                  type="monotone" 
-                  dataKey="volume" 
-                  stroke="#00B074" 
-                  strokeWidth={2.5} 
-                  fillOpacity={1} 
-                  fill="url(#volumeDailyGrad)" 
-                />
-              )}
-            </AreaChart>
-          </ResponsiveContainer>
+        {/* SVG Area Chart */}
+        <div className="relative w-full pt-1">
+          <svg 
+            viewBox={`0 0 ${svgW} ${svgH}`} 
+            className="w-full h-48 select-none overflow-visible"
+          >
+            <defs>
+              <linearGradient id="areaVolumeGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={volumeViewType === 'cumulative' ? '#06b6d4' : '#00B074'} stopOpacity="0.4" />
+                <stop offset="100%" stopColor={volumeViewType === 'cumulative' ? '#0B192C' : '#040911'} stopOpacity="0.0" />
+              </linearGradient>
+            </defs>
+
+            {/* Grid Lines */}
+            {[0, 0.5, 1].map((pct, i) => {
+              const y = padT + plotH - pct * plotH;
+              const val = pct * maxVolumeVal;
+              return (
+                <g key={i}>
+                  <line 
+                    x1={padL} 
+                    y1={y} 
+                    x2={padL + plotW} 
+                    y2={y} 
+                    stroke="#1E293B" 
+                    strokeDasharray="3 3"
+                    strokeWidth="1"
+                  />
+                  <text 
+                    x={padL - 4} 
+                    y={y + 3} 
+                    textAnchor="end" 
+                    fill="#64748B" 
+                    fontSize="9" 
+                    fontFamily="monospace"
+                  >
+                    ${val >= 1000000 ? `${(val / 1000000).toFixed(1)}M` : `${(val / 1000).toFixed(0)}k`}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Bottom Axis Line */}
+            <line 
+              x1={padL} 
+              y1={padT + plotH} 
+              x2={padL + plotW} 
+              y2={padT + plotH} 
+              stroke="#334155" 
+              strokeWidth="1" 
+            />
+
+            {/* Area & Line */}
+            <path d={areaPath} fill="url(#areaVolumeGrad)" />
+            <path 
+              d={linePath} 
+              fill="none" 
+              stroke={volumeViewType === 'cumulative' ? '#06b6d4' : '#00B074'} 
+              strokeWidth="2.5" 
+              strokeLinecap="round"
+            />
+
+            {/* Data Points & Touch Areas */}
+            {volPoints.map((pt, idx) => {
+              const isHov = hoveredVolIdx === idx;
+              const step = timeRange === '30d' ? 5 : timeRange === '14d' ? 2 : 1;
+              const showLabel = idx % step === 0 || idx === volPoints.length - 1;
+
+              return (
+                <g 
+                  key={idx}
+                  onMouseEnter={() => setHoveredVolIdx(idx)}
+                  onMouseLeave={() => setHoveredVolIdx(null)}
+                  onClick={() => setHoveredVolIdx(hoveredVolIdx === idx ? null : idx)}
+                  className="cursor-pointer"
+                >
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r={isHov ? 5 : 2.5}
+                    fill={isHov ? '#ffffff' : (volumeViewType === 'cumulative' ? '#06b6d4' : '#00B074')}
+                    stroke={volumeViewType === 'cumulative' ? '#06b6d4' : '#00B074'}
+                    strokeWidth="2"
+                  />
+
+                  {showLabel && (
+                    <text
+                      x={pt.x}
+                      y={padT + plotH + 15}
+                      textAnchor="middle"
+                      fill="#64748B"
+                      fontSize="9"
+                      fontFamily="monospace"
+                    >
+                      {pt.data.date.split(' ')[0]}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Interactive Tooltip Card */}
+          {hoveredVol && (
+            <div className="mt-2 bg-[#0B192C]/95 border border-slate-700 rounded-xl p-3 shadow-2xl text-xs space-y-1 backdrop-blur-md">
+              <div className="text-slate-400 font-mono text-[10px] pb-1 border-b border-slate-800 flex justify-between">
+                <span>{hoveredVol.date}</span>
+                <span className="text-[#00B074] font-bold">{hoveredVol.deals} lotes cerrados</span>
+              </div>
+              <div className="flex justify-between items-center text-white font-mono pt-1">
+                <span className="text-slate-300">Volumen Diario:</span>
+                <span className="font-bold text-cyan-400">${hoveredVol.volume.toLocaleString()} USD</span>
+              </div>
+              <div className="flex justify-between items-center text-white font-mono">
+                <span className="text-slate-300">Acumulado 30D:</span>
+                <span className="font-bold text-[#00B074]">${hoveredVol.cumulativeVolume.toLocaleString()} USD</span>
+              </div>
+              <div className="flex justify-between items-center text-white font-mono pt-1 border-t border-slate-800/80">
+                <span className="text-emerald-350">Ahorro Arbitraje:</span>
+                <span className="font-bold text-emerald-400">+${hoveredVol.savings.toLocaleString()} USD</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Volume Footnote Metric */}
+        {/* Footnote */}
         <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
@@ -456,9 +513,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* 4. CHART 2: ARBITRAGE SAVINGS ACHIEVED (RECHARTS)         */}
-      {/* ======================================================== */}
+      {/* 4. CHART 2: ARBITRAGE SAVINGS ACHIEVED (STACKED SVG BARS) */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
         <div className="flex items-center justify-between">
           <div>
@@ -472,46 +527,182 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           </div>
 
           <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-[#00B074] border border-emerald-500/30 text-[10px] font-mono font-bold">
-            +${(totalSavings).toLocaleString()} USD
+            +${totalSavings.toLocaleString()} USD
           </span>
         </div>
 
-        {/* Stacked Recharts Bars: Apple, Samsung, MacBook */}
-        <div className="h-56 w-full pt-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={filteredData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-              <XAxis 
-                dataKey="date" 
-                stroke="#64748b" 
-                fontSize={10} 
-                tickLine={false}
-                axisLine={{ stroke: '#334155' }}
-                interval={timeRange === '30d' ? 4 : timeRange === '14d' ? 2 : 0}
-              />
-              <YAxis 
-                stroke="#64748b" 
-                fontSize={10} 
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
-              />
-              <Tooltip content={<SavingsTooltip />} />
-              <Legend 
-                verticalAlign="top" 
-                height={28}
-                formatter={(val) => {
-                  if (val === 'appleSavings') return <span className="text-[10px] text-slate-300 font-mono"> iPhone</span>;
-                  if (val === 'samsungSavings') return <span className="text-[10px] text-slate-300 font-mono">Samsung</span>;
-                  if (val === 'macbookSavings') return <span className="text-[10px] text-slate-300 font-mono">MacBook</span>;
-                  return val;
-                }}
-              />
-              <Bar dataKey="appleSavings" stackId="savings" fill="#00B074" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="samsungSavings" stackId="savings" fill="#06b6d4" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="macbookSavings" stackId="savings" fill="#a855f7" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-4 text-[10px] font-mono pt-1">
+          <span className="flex items-center gap-1 text-slate-300">
+            <span className="w-2 h-2 rounded-full bg-[#00B074]" />  iPhone
+          </span>
+          <span className="flex items-center gap-1 text-slate-300">
+            <span className="w-2 h-2 rounded-full bg-cyan-400" /> Samsung
+          </span>
+          <span className="flex items-center gap-1 text-slate-300">
+            <span className="w-2 h-2 rounded-full bg-purple-400" /> MacBook
+          </span>
+        </div>
+
+        {/* Stacked SVG Bars */}
+        <div className="relative w-full pt-1">
+          <svg 
+            viewBox={`0 0 ${svgW} ${svgH}`} 
+            className="w-full h-48 select-none overflow-visible"
+          >
+            {/* Grid lines */}
+            {[0, 0.5, 1].map((pct, i) => {
+              const y = padT + plotH - pct * plotH;
+              const val = pct * maxSavingsVal;
+              return (
+                <g key={i}>
+                  <line 
+                    x1={padL} 
+                    y1={y} 
+                    x2={padL + plotW} 
+                    y2={y} 
+                    stroke="#1E293B" 
+                    strokeDasharray="3 3"
+                    strokeWidth="1"
+                  />
+                  <text 
+                    x={padL - 4} 
+                    y={y + 3} 
+                    textAnchor="end" 
+                    fill="#64748B" 
+                    fontSize="9" 
+                    fontFamily="monospace"
+                  >
+                    ${(val / 1000).toFixed(0)}k
+                  </text>
+                </g>
+              );
+            })}
+
+            <line 
+              x1={padL} 
+              y1={padT + plotH} 
+              x2={padL + plotW} 
+              y2={padT + plotH} 
+              stroke="#334155" 
+              strokeWidth="1" 
+            />
+
+            {filteredData.map((d, idx) => {
+              const colX = padL + idx * barColW;
+              const barW = Math.max(4, barColW - 3);
+              const isHov = hoveredSavIdx === idx;
+
+              const hApple = (d.appleSavings / maxSavingsVal) * plotH;
+              const hSamsung = (d.samsungSavings / maxSavingsVal) * plotH;
+              const hMacBook = (d.macbookSavings / maxSavingsVal) * plotH;
+
+              let currentY = padT + plotH;
+              const yApple = currentY - hApple;
+              currentY -= hApple;
+
+              const ySamsung = currentY - hSamsung;
+              currentY -= hSamsung;
+
+              const yMacBook = currentY - hMacBook;
+
+              const step = timeRange === '30d' ? 5 : timeRange === '14d' ? 2 : 1;
+              const showLabel = idx % step === 0 || idx === filteredData.length - 1;
+
+              return (
+                <g 
+                  key={idx}
+                  onMouseEnter={() => setHoveredSavIdx(idx)}
+                  onMouseLeave={() => setHoveredSavIdx(null)}
+                  onClick={() => setHoveredSavIdx(hoveredSavIdx === idx ? null : idx)}
+                  className="cursor-pointer"
+                >
+                  {isHov && (
+                    <rect
+                      x={colX}
+                      y={padT}
+                      width={barColW}
+                      height={plotH}
+                      fill="#00B074"
+                      fillOpacity="0.08"
+                      rx="3"
+                    />
+                  )}
+
+                  {/* Apple Bar */}
+                  <rect
+                    x={colX + (barColW - barW) / 2}
+                    y={yApple}
+                    width={barW}
+                    height={Math.max(1, hApple)}
+                    fill="#00B074"
+                    rx="1"
+                  />
+                  {/* Samsung Bar */}
+                  <rect
+                    x={colX + (barColW - barW) / 2}
+                    y={ySamsung}
+                    width={barW}
+                    height={Math.max(1, hSamsung)}
+                    fill="#06b6d4"
+                    rx="1"
+                  />
+                  {/* MacBook Bar */}
+                  <rect
+                    x={colX + (barColW - barW) / 2}
+                    y={yMacBook}
+                    width={barW}
+                    height={Math.max(1, hMacBook)}
+                    fill="#a855f7"
+                    rx="2"
+                  />
+
+                  {showLabel && (
+                    <text
+                      x={colX + barColW / 2}
+                      y={padT + plotH + 15}
+                      textAnchor="middle"
+                      fill="#64748B"
+                      fontSize="9"
+                      fontFamily="monospace"
+                    >
+                      {d.date.split(' ')[0]}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Interactive Tooltip Card */}
+          {hoveredSav && (
+            <div className="mt-2 bg-[#0B192C]/95 border border-slate-700 rounded-xl p-3 shadow-2xl text-xs space-y-1.5 backdrop-blur-md">
+              <div className="text-slate-400 font-mono text-[10px] pb-1 border-b border-slate-800 flex justify-between">
+                <span>{hoveredSav.date}</span>
+                <span className="text-[#00B074] font-bold">Total: +${hoveredSav.savings.toLocaleString()} USD</span>
+              </div>
+              <div className="space-y-1 font-mono text-[11px] pt-1">
+                <div className="flex justify-between text-slate-200">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#00B074]" />  iPhone / iPad:
+                  </span>
+                  <span className="font-bold text-[#00B074]">${hoveredSav.appleSavings.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-slate-200">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400" /> Samsung Galaxy:
+                  </span>
+                  <span className="font-bold text-cyan-400">${hoveredSav.samsungSavings.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-slate-200">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-purple-400" /> MacBooks M-Series:
+                  </span>
+                  <span className="font-bold text-purple-400">${hoveredSav.macbookSavings.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Category Contribution Badges */}
@@ -536,9 +727,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* 5. TOP ARBITRAGE LIQUIDATIONS LOG (30 DAYS)              */}
-      {/* ======================================================== */}
+      {/* 5. TOP ARBITRAGE LIQUIDATIONS LOG */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -582,6 +771,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         </div>
 
         <button
+          type="button"
           onClick={onOpenFeed}
           className="w-full py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-cyan-400 border border-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
         >

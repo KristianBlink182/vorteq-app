@@ -46,7 +46,12 @@ import {
   Database,
   RotateCcw,
   Maximize2,
-  Rocket
+  Rocket,
+  WifiOff,
+  Wifi,
+  LogOut,
+  Store,
+  ShoppingBag
 } from 'lucide-react';
 import { UserAccount, TradeOffer, ProductPriceLive, FeaturedStory, ChatMessage } from '../../types';
 import { VorteqLogo } from '../common/VorteqLogo';
@@ -55,6 +60,15 @@ import { PriceAlertsSection } from './PriceAlertsSection';
 import { PerformanceDashboard } from './PerformanceDashboard';
 import { WholesaleDetailModal } from './WholesaleDetailModal';
 import { DeploymentGuideModal } from './DeploymentGuideModal';
+import { VoiceSearchBar } from './VoiceSearchBar';
+import { OfflineBanner, OfflineStatusCard } from './OfflineBanner';
+import { 
+  getOfflineCacheStats, 
+  setSimulatedOfflineState, 
+  updateLastSyncTimestamp, 
+  queueOfflineMessage,
+  OfflineCacheStats
+} from '../../services/offlineSync';
 import { 
   getStoredChatMessages, 
   saveChatMessages, 
@@ -75,6 +89,7 @@ interface MobileAppProps {
   onSaveOfferToggle: (offerId: string) => void;
   onIgnoreOfferToggle: (offerId: string) => void;
   onUpdatePrivacy: (hidePhone: boolean, hideArchived: boolean) => void;
+  onLogout?: () => void;
 }
 
 export const MobileApp: React.FC<MobileAppProps> = ({
@@ -90,6 +105,7 @@ export const MobileApp: React.FC<MobileAppProps> = ({
   onSaveOfferToggle,
   onIgnoreOfferToggle,
   onUpdatePrivacy,
+  onLogout,
 }) => {
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<'inicio' | 'feed' | 'precios' | 'performance' | 'chat' | 'menu'>('inicio');
@@ -106,6 +122,50 @@ export const MobileApp: React.FC<MobileAppProps> = ({
   const [showOnlySaved, setShowOnlySaved] = useState<boolean>(false);
   const [expandedOffer, setExpandedOffer] = useState<TradeOffer | null>(null);
   const [showDeployModal, setShowDeployModal] = useState<boolean>(false);
+
+  // Offline Mode State & Metrics
+  const [offlineStats, setOfflineStats] = useState<OfflineCacheStats>(() => getOfflineCacheStats());
+  const [reconnectedToast, setReconnectedToast] = useState<boolean>(false);
+
+  // Sync cache stats on mount and whenever network events fire
+  useEffect(() => {
+    updateLastSyncTimestamp();
+    setOfflineStats(getOfflineCacheStats());
+
+    const handleOnline = () => {
+      setOfflineStats(getOfflineCacheStats());
+      setReconnectedToast(true);
+      setTimeout(() => setReconnectedToast(false), 3500);
+    };
+
+    const handleOffline = () => {
+      setOfflineStats(getOfflineCacheStats());
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const handleToggleSimulatedOffline = (active: boolean) => {
+    setSimulatedOfflineState(active);
+    const updated = getOfflineCacheStats();
+    setOfflineStats(updated);
+    if (!active) {
+      setReconnectedToast(true);
+      setTimeout(() => setReconnectedToast(false), 3500);
+    }
+  };
+
+  const handleForceRefreshCache = () => {
+    updateLastSyncTimestamp();
+    setOfflineStats(getOfflineCacheStats());
+    setChatStatusNotice('Caché de lotes y mensajes sincronizado con éxito');
+    setTimeout(() => setChatStatusNotice(null), 3000);
+  };
 
   // Privacy modal settings state
   const [hidePhoneState, setHidePhoneState] = useState<boolean>(currentUser.hidePhone);
@@ -172,7 +232,16 @@ export const MobileApp: React.FC<MobileAppProps> = ({
     saveChatMessages(updatedMessages);
     setChatInputText('');
 
-    // Trigger typing simulation and simulated trade response
+    // If offline, queue message and notify user without simulated server reply
+    if (offlineStats.effectiveOffline) {
+      queueOfflineMessage(targetId, newMsg);
+      setChatStatusNotice('Mensaje guardado localmente en tu dispositivo (Modo Offline)');
+      setTimeout(() => setChatStatusNotice(null), 3500);
+      setOfflineStats(getOfflineCacheStats());
+      return;
+    }
+
+    // Trigger typing simulation and simulated trade response when online
     setIsCounterpartyTyping(true);
     setTimeout(() => {
       setIsCounterpartyTyping(false);
@@ -298,10 +367,17 @@ export const MobileApp: React.FC<MobileAppProps> = ({
         {/* Official Vorteq B2B Brand Lockup */}
         <div className="flex items-center gap-2">
           <VorteqLogo size="sm" variant="full" theme="dark" animated={true} />
-          <div className="hidden xs:flex items-center gap-1 text-[10px] text-slate-300 font-mono ml-1 pl-2 border-l border-slate-700">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00B074] animate-pulse" />
-            <span className="text-[#00B074] font-semibold">Red Activa</span>
-          </div>
+          {offlineStats.effectiveOffline ? (
+            <div className="flex items-center gap-1 text-[10px] text-amber-400 font-mono ml-1 pl-2 border-l border-slate-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+              <span className="font-semibold">Modo Offline</span>
+            </div>
+          ) : (
+            <div className="hidden xs:flex items-center gap-1 text-[10px] text-slate-300 font-mono ml-1 pl-2 border-l border-slate-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00B074] animate-pulse" />
+              <span className="text-[#00B074] font-semibold">Red Activa</span>
+            </div>
+          )}
         </div>
 
         {/* Right Action Icons */}
@@ -331,15 +407,55 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             <span className="w-2 h-2 bg-cyan-400 rounded-full absolute top-1.5 right-1.5" />
           </button>
 
-          <button
-            onClick={() => setSelectedProfileUser(currentUser)}
-            className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 text-white font-bold flex items-center justify-center text-xs ml-0.5 border border-cyan-400/30 shadow-xs"
-            title="Mi Perfil"
-          >
-            {currentUser.avatarText || 'US'}
-          </button>
+          <div className="flex items-center gap-1.5 ml-0.5">
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-extrabold ${
+              currentUser.accountType === 'vendor'
+                ? 'bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40'
+                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+            }`}>
+              {currentUser.accountType === 'vendor' ? (
+                <>
+                  <Store className="w-2.5 h-2.5" />
+                  <span>VENDOR</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-2.5 h-2.5" />
+                  <span>CUSTOMER</span>
+                </>
+              )}
+            </span>
+
+            <button
+              onClick={() => setSelectedProfileUser(currentUser)}
+              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 text-white font-bold flex items-center justify-center text-xs border border-cyan-400/30 shadow-xs cursor-pointer"
+              title={`Mi Perfil (${currentUser.accountType === 'vendor' ? 'VENDOR' : 'CUSTOMER'})`}
+            >
+              {currentUser.avatarText || 'US'}
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* Offline Mode Alert Banner */}
+      <OfflineBanner
+        stats={offlineStats}
+        onToggleSimulatedOffline={handleToggleSimulatedOffline}
+        onForceRefreshCache={handleForceRefreshCache}
+      />
+
+      {/* Reconnection Success Toast */}
+      {reconnectedToast && (
+        <div className="bg-emerald-950 border-b border-emerald-500/40 px-3.5 py-2 text-xs text-emerald-300 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-1">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span className="font-bold">¡Conexión Restablecida! Datos sincronizados en tiempo real.</span>
+          </div>
+          <button onClick={() => setReconnectedToast(false)} className="text-emerald-400 hover:text-white">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* ======================================================== */}
       {/* 2. MAIN SCROLLABLE CONTENT BODY                          */}
@@ -631,26 +747,15 @@ export const MobileApp: React.FC<MobileAppProps> = ({
         {/* ======================================================== */}
         {activeTab === 'feed' && (
           <div className="p-4 space-y-4">
-            {/* Filter and Search Bar */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Buscar modelo, spec o ciudad..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <button
-                onClick={() => setShowFilterModal(!showFilterModal)}
-                className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 hover:text-white"
-              >
-                <Filter className="w-4 h-4" />
-              </button>
-            </div>
+            {/* Búsqueda por Voz y Filtros Inteligentes (Web Speech API) */}
+            <VoiceSearchBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onFilterModalToggle={() => setShowFilterModal(!showFilterModal)}
+              onShowOnlySavedToggle={setShowOnlySaved}
+              onCategorySelect={setActiveFilterCategory}
+              placeholder="Buscar o decir 'Buscar iPhone 16'..."
+            />
 
             {/* Quick Filter chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono scrollbar-none">
@@ -740,6 +845,28 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                 />
               </button>
             </div>
+
+            {/* AVISO DE MODO OFFLINE EN EL FEED */}
+            {offlineStats.effectiveOffline && (
+              <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border border-amber-500/40 text-xs text-amber-200 flex items-center justify-between gap-3 shadow-md animate-in fade-in">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                    <WifiOff className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white">Inventario en Caché Local</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+                        {filteredOffers.length} lotes listos
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-amber-300/80 block mt-0.5">
+                      Visualizando los últimos lotes cargados en localStorage. Toca cualquier lote para ver especificaciones y fotos sin conexión.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Feed List of Wholesale Cards */}
             <div className="space-y-3.5">
@@ -1077,14 +1204,30 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                   </div>
                 </div>
 
-                {/* LocalStorage Persistence Indicator Banner */}
-                <div className="flex items-center justify-between px-2.5 py-1 bg-slate-900/60 rounded-lg border border-slate-800/80 text-[10px] text-slate-400 font-mono">
+                {/* LocalStorage Persistence & Offline Indicator Banner */}
+                <div className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-[10px] font-mono transition-colors ${
+                  offlineStats.effectiveOffline 
+                    ? 'bg-amber-950/40 border-amber-800/60 text-amber-300' 
+                    : 'bg-slate-900/60 border-slate-800/80 text-slate-400'
+                }`}>
                   <div className="flex items-center gap-1.5">
-                    <Database className="w-3 h-3 text-[#00B074]" />
-                    <span>Persistencia activa: <strong className="text-slate-200">localStorage</strong></span>
+                    {offlineStats.effectiveOffline ? (
+                      <WifiOff className="w-3 h-3 text-amber-400" />
+                    ) : (
+                      <Database className="w-3 h-3 text-[#00B074]" />
+                    )}
+                    <span>
+                      {offlineStats.effectiveOffline 
+                        ? 'Modo Offline: Historial disponible en localStorage' 
+                        : <>Persistencia activa: <strong className="text-slate-200">localStorage</strong></>}
+                    </span>
                   </div>
-                  <span className="text-[#00B074] flex items-center gap-1">
-                    <CheckCheck className="w-3 h-3" /> Auto-guardado
+                  <span className={offlineStats.effectiveOffline ? 'text-amber-400 font-bold flex items-center gap-1' : 'text-[#00B074] flex items-center gap-1'}>
+                    {offlineStats.effectiveOffline ? (
+                      <>⚡ Sin Conexión</>
+                    ) : (
+                      <><CheckCheck className="w-3 h-3" /> Auto-guardado</>
+                    )}
                   </span>
                 </div>
 
@@ -1362,6 +1505,13 @@ export const MobileApp: React.FC<MobileAppProps> = ({
               livePrices={livePrices}
             />
 
+            {/* CENTRO DE CONECTIVIDAD & MODO OFFLINE */}
+            <OfflineStatusCard
+              stats={offlineStats}
+              onToggleSimulatedOffline={handleToggleSimulatedOffline}
+              onForceRefreshCache={handleForceRefreshCache}
+            />
+
             {/* Navigation Actions List */}
             <div className="bg-slate-900/90 border border-slate-800 rounded-2xl divide-y divide-slate-800 text-xs font-medium text-slate-200">
               <button
@@ -1428,6 +1578,20 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-emerald-400" />
+              </button>
+
+              {/* Cerrar Sesión / Salir al Login o Registro */}
+              <button
+                onClick={onLogout}
+                className="w-full p-3.5 flex items-center justify-between text-rose-400 hover:bg-rose-500/10 border-t border-slate-800 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <LogOut className="w-4 h-4 text-rose-400" />
+                  <span className="font-bold">Cerrar Sesión ({currentUser.username})</span>
+                </div>
+                <span className="text-[10px] text-rose-300 font-mono bg-rose-500/20 px-2 py-0.5 rounded-full">
+                  SALIR
+                </span>
               </button>
             </div>
           </div>
@@ -1613,13 +1777,80 @@ export const MobileApp: React.FC<MobileAppProps> = ({
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-white">{selectedProfileUser.fullName}</h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-base font-bold text-white">{selectedProfileUser.fullName}</h3>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold ${
+                    selectedProfileUser.accountType === 'vendor'
+                      ? 'bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40'
+                      : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+                  }`}>
+                    {selectedProfileUser.accountType === 'vendor' ? 'VENDOR (Proveedor)' : 'CUSTOMER (Comprador)'}
+                  </span>
+                </div>
                 <div className="text-xs text-slate-300 font-semibold">{selectedProfileUser.companyName}</div>
-                <div className="text-xs text-slate-400">{selectedProfileUser.country} · {selectedProfileUser.countryFlag}</div>
+                <div className="text-xs text-slate-400">{selectedProfileUser.country} · {selectedProfileUser.countryFlag} · {selectedProfileUser.city || 'Almacén Central'}</div>
                 <div className="flex items-center gap-2 text-xs text-slate-300 mt-1 font-mono">
                   <span>{selectedProfileUser.phoneWhatsApp}</span>
+                  {selectedProfileUser.taxId && (
+                    <span className="text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded font-mono">
+                      ID Fiscal: {selectedProfileUser.taxId}
+                    </span>
+                  )}
                 </div>
               </div>
+            </div>
+
+            {/* Role Specific Details Card */}
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs space-y-2">
+              <div className="font-bold text-slate-200 flex items-center justify-between text-[11px] uppercase tracking-wider">
+                <span>Perfil Comercial Verificado</span>
+                <span className="text-emerald-400 font-mono text-[10px]">KYC APROBADO</span>
+              </div>
+
+              {selectedProfileUser.accountType === 'vendor' ? (
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                    <span className="text-slate-400 block text-[10px]">Tipo de Vendedor</span>
+                    <span className="text-white font-semibold">{selectedProfileUser.vendorType || 'Distribuidor Mayorista'}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                    <span className="text-slate-400 block text-[10px]">Capacidad de Stock</span>
+                    <span className="text-[#00B074] font-semibold">{selectedProfileUser.vendorSupplyCapacity || '$50,000 - $250,000 USD'}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                    <span className="text-slate-400 block text-[10px]">Pedido Mínimo (MOQ)</span>
+                    <span className="text-white font-semibold">{selectedProfileUser.vendorMoq || '10 unidades'}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                    <span className="text-slate-400 block text-[10px]">Garantía Técnica</span>
+                    <span className="text-emerald-300 font-semibold">{selectedProfileUser.vendorWarrantyTerms || '12 Meses Oficial'}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                    <span className="text-slate-400 block text-[10px]">Tipo de Negocio</span>
+                    <span className="text-white font-semibold">{selectedProfileUser.customerBusinessType || 'Tienda Retail'}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                    <span className="text-slate-400 block text-[10px]">Presupuesto Mensual</span>
+                    <span className="text-cyan-400 font-semibold">{selectedProfileUser.customerMonthlyBudget || '$20K - $100K USD'}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50 col-span-2">
+                    <span className="text-slate-400 block text-[10px]">Métodos de Pago Preferidos</span>
+                    <span className="text-white font-semibold">
+                      {selectedProfileUser.customerPaymentMethods?.join(' · ') || 'Transferencia SWIFT / USDT'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {selectedProfileUser.address && (
+                <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 flex items-center gap-1">
+                  <span className="font-semibold text-slate-300">Almacén:</span>
+                  <span>{selectedProfileUser.address}</span>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-4 gap-2 text-center py-2 border-y border-slate-800 font-mono">
@@ -1640,6 +1871,20 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                 <span className="text-[10px] text-slate-400 block font-sans">Chats</span>
               </div>
             </div>
+
+            {/* Logout button if viewing my own profile */}
+            {selectedProfileUser.id === currentUser.id && (
+              <button
+                onClick={() => {
+                  setSelectedProfileUser(null);
+                  onLogout?.();
+                }}
+                className="w-full py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Cerrar Sesión de {currentUser.username}</span>
+              </button>
+            )}
 
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-slate-300 uppercase">Ofertas Activas de la Empresa</h4>

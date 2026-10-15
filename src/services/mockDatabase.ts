@@ -15,6 +15,15 @@ export const INITIAL_USERS: UserAccount[] = [
     companySize: '$10M - $25M',
     verifiedStatus: 'verified',
     role: 'trader',
+    accountType: 'vendor', // VENDOR (Proveedor Mayorista)
+    taxId: 'AE-DXB-984210',
+    city: 'Dubái / Nueva Delhi',
+    address: 'Warehouse Zone 4, Free Trade Logistics Hub',
+    vendorType: 'Importador Mayorista Directo',
+    vendorCategories: ['Smartphones Apple & Samsung', 'MacBooks & Laptops', 'Tablets & iPads'],
+    vendorSupplyCapacity: '$100,000 - $500,000 USD/mes',
+    vendorMoq: '10 unidades por lote',
+    vendorWarrantyTerms: '12 Meses Garantía Oficial AppleCare / RMA 48h',
     avatarText: 'ER',
     avatarBgColor: '#0ea5e9',
     endorsements: ['mobi hub', 'LinkedIn', 'WhatsApp', 'importando USA', 'GSM B2B'],
@@ -39,6 +48,14 @@ export const INITIAL_USERS: UserAccount[] = [
     companySize: '$10M - $25M',
     verifiedStatus: 'verified',
     role: 'trader',
+    accountType: 'customer', // CUSTOMER (Cliente / Comprador B2B)
+    taxId: 'CA-ON-89214798',
+    city: 'Toronto, Ontario',
+    address: '450 Queensway Blvd, Unit 12B',
+    customerBusinessType: 'Cadena de Retail de Tecnología & E-commerce',
+    customerMonthlyBudget: '$50,000 - $200,000 USD/mes',
+    customerPaymentMethods: ['Transferencia Bancaria (SWIFT)', 'USDT (TRC20)', 'Carta de Crédito'],
+    customerDeliveryPref: 'Envío Aéreo Express a Bodega Toronto',
     avatarText: 'IT',
     avatarBgColor: '#3b82f6',
     endorsements: ['mobi hub', 'WhatsApp', 'GSM B2B'],
@@ -63,6 +80,15 @@ export const INITIAL_USERS: UserAccount[] = [
     companySize: '>$50M',
     verifiedStatus: 'verified',
     role: 'admin',
+    accountType: 'vendor',
+    taxId: 'US-FL-38914829',
+    city: 'Miami, Florida',
+    address: '8400 NW 36th St, Doral Logistics Center',
+    vendorType: 'Distribuidor Oficial Master',
+    vendorCategories: ['Smartphones', 'Laptops', 'Gaming', 'Componentes'],
+    vendorSupplyCapacity: '>$1,000,000 USD/mes',
+    vendorMoq: 'Flexible',
+    vendorWarrantyTerms: 'Garantía Directa de Fábrica 12 Meses',
     avatarText: 'VQ',
     avatarBgColor: '#00B074',
     endorsements: ['Vorteq Official B2B', 'GSMA Partner', 'Escrow Custodian'],
@@ -478,7 +504,26 @@ export const getDatabase = () => {
     const storedPrices = localStorage.getItem(STORAGE_KEY_PREFIX + 'prices');
     const storedCurrentUserId = localStorage.getItem(STORAGE_KEY_PREFIX + 'current_user_id');
 
-    const users: UserAccount[] = storedUsers ? JSON.parse(storedUsers) : INITIAL_USERS;
+    const rawUsers: UserAccount[] = storedUsers ? JSON.parse(storedUsers) : INITIAL_USERS;
+    const users: UserAccount[] = rawUsers.map((u) => {
+      const initialMatch = INITIAL_USERS.find((iu) => iu.id === u.id);
+      return {
+        ...u,
+        accountType: u.accountType || (initialMatch ? initialMatch.accountType : (u.id.includes('customer') ? 'customer' : 'vendor')),
+        taxId: u.taxId || initialMatch?.taxId || 'RUC-20608912301',
+        city: u.city || initialMatch?.city || 'Miami, FL',
+        address: u.address || initialMatch?.address || 'Av. Principal 102',
+        vendorType: u.vendorType || initialMatch?.vendorType || (u.accountType === 'vendor' ? 'Distribuidor Oficial' : undefined),
+        vendorCategories: u.vendorCategories || initialMatch?.vendorCategories || (u.accountType === 'vendor' ? ['Smartphones', 'Laptops'] : undefined),
+        vendorSupplyCapacity: u.vendorSupplyCapacity || initialMatch?.vendorSupplyCapacity || (u.accountType === 'vendor' ? '$50,000 - $250,000 USD/mes' : undefined),
+        vendorMoq: u.vendorMoq || initialMatch?.vendorMoq || (u.accountType === 'vendor' ? '5 unidades' : undefined),
+        vendorWarrantyTerms: u.vendorWarrantyTerms || initialMatch?.vendorWarrantyTerms || (u.accountType === 'vendor' ? '12 Meses Garantía Oficial' : undefined),
+        customerBusinessType: u.customerBusinessType || initialMatch?.customerBusinessType || (u.accountType === 'customer' ? 'Tienda Retail & E-commerce' : undefined),
+        customerMonthlyBudget: u.customerMonthlyBudget || initialMatch?.customerMonthlyBudget || (u.accountType === 'customer' ? '$20,000 - $100,000 USD/mes' : undefined),
+        customerPaymentMethods: u.customerPaymentMethods || initialMatch?.customerPaymentMethods || (u.accountType === 'customer' ? ['Transferencia Bancaria (SWIFT)', 'USDT'] : undefined),
+        customerDeliveryPref: u.customerDeliveryPref || initialMatch?.customerDeliveryPref || (u.accountType === 'customer' ? 'Envío Aéreo Express' : undefined)
+      };
+    });
     const rawOffers: TradeOffer[] = storedOffers ? JSON.parse(storedOffers) : INITIAL_OFFERS;
     
     // Ensure every offer has rich images, specs, and physical condition even if stored previously
@@ -551,4 +596,23 @@ export const setCurrentUser = (user: UserAccount) => {
     localStorage.setItem(STORAGE_KEY_PREFIX + 'current_user_id', user.id);
   } catch (e) {}
 };
+
+export const getIsAuthenticated = (): boolean => {
+  try {
+    return localStorage.getItem(STORAGE_KEY_PREFIX + 'authenticated') === 'true';
+  } catch {
+    return false;
+  }
+};
+
+export const setIsAuthenticated = (auth: boolean): void => {
+  try {
+    if (auth) {
+      localStorage.setItem(STORAGE_KEY_PREFIX + 'authenticated', 'true');
+    } else {
+      localStorage.removeItem(STORAGE_KEY_PREFIX + 'authenticated');
+    }
+  } catch {}
+};
+
 
