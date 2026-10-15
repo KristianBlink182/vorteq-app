@@ -8,9 +8,6 @@ workflows:
     environment:
       node: 20
       xcode: latest
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.vorteq.trade
     triggering:
       events:
         - push
@@ -29,6 +26,12 @@ workflows:
       - name: Sync Capacitor iOS
         script: |
           npx cap sync ios
+      - name: Set up keychain and fetch/create signing files
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "com.vorteq.trade" \
+            --type IOS_APP_STORE \
+            --create
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles
