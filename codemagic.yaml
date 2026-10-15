@@ -19,7 +19,9 @@ workflows:
     scripts:
       - name: Install Node.js dependencies
         script: |
+          rm -f package-lock.json
           npm install --legacy-peer-deps
+          npm install --no-save @rolldown/binding-darwin-arm64@1.2.14 || true
       - name: Build Web Application
         script: |
           npm run build
