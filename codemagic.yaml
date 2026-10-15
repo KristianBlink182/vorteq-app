@@ -6,6 +6,9 @@ workflows:
     integrations:
       app_store_connect: Codemagic Vorteq
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.vorteq.trade
       node: 22
       xcode: latest
     triggering:
@@ -28,34 +31,18 @@ workflows:
       - name: Sync Capacitor iOS
         script: |
           npx cap sync ios
-      - name: Set up keychain and fetch/create signing files
+      - name: Set up code signing settings on Xcode project
         script: |
-          keychain initialize
-          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
-            echo "Generating RSA private key for iOS distribution certificate..."
-            openssl genrsa -out /tmp/dist_key 2048
-            export CERTIFICATE_PRIVATE_KEY=$(cat /tmp/dist_key)
-            app-store-connect fetch-signing-files "com.vorteq.trade" \
-              --type IOS_APP_STORE \
-              --certificate-key "@file:/tmp/dist_key" \
-              --create
-          else
-            app-store-connect fetch-signing-files "com.vorteq.trade" \
-              --type IOS_APP_STORE \
-              --create
-          fi
-          agvtool new-version -all $(($BUILD_NUM + 1))
+          xcode-project use-profiles --project "ios/App/App.xcodeproj"
+      - name: Increment build number
+        script: |
+          cd ios/App
+          agvtool new-version -all $(($BUILD_NUMBER + 1))
       - name: Build IPA for TestFlight
         script: |
-          if [ -d "ios/App/App.xcworkspace" ]; then
-            xcode-project build-ipa \
-              --workspace "ios/App/App.xcworkspace" \
-              --scheme "App"
-          else
-            xcode-project build-ipa \
-              --project "ios/App/App.xcodeproj" \
-              --scheme "App"
-          fi
+          xcode-project build-ipa \
+            --project "ios/App/App.xcodeproj" \
+            --scheme "App"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
