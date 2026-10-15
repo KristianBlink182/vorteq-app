@@ -1,0 +1,6 @@
+{
+  "name": "AUROX - Wholesale Electronics Trading & Market Intelligence",
+  "description": "Next-generation B2B wholesale electronics trading floor with real-time analytics, interactive performance dashboards, and global arbitrage intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

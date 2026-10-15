@@ -1,0 +1,50 @@
+workflows:
+  ios-release-testflight:
+    name: iOS TestFlight Build & Release (Capacitor)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      node: 20
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.vorteq.trade
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+      cancel_previous_builds: true
+    scripts:
+      - name: Install Node.js dependencies
+        script: |
+          npm install
+      - name: Build Web Application
+        script: |
+          npm run build
+      - name: Sync Capacitor iOS
+        script: |
+          npx cap sync ios
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
+      - name: Increment build number
+        script: |
+          cd ios/App
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_CONNECT_APP_ID" || echo "0")
+          agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
+      - name: Build IPA for TestFlight
+        script: |
+          xcode-project build-ipa \
+            --workspace "ios/App/App.xcworkspace" \
+            --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        expire_in_days: 90

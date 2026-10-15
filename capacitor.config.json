@@ -1,0 +1,9 @@
+{
+  "appId": "com.vorteq.trade",
+  "appName": "Vorteq B2B",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "ios": {
+    "contentInset": "always"
+  }
+}
