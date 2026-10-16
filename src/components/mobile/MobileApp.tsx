@@ -358,84 +358,12 @@ export const MobileApp: React.FC<MobileAppProps> = ({
   const savedOffers = offers.filter((o) => o.isSaved);
 
   return (
-    <div className="w-full max-w-md mx-auto bg-[#0b0f19] text-slate-100 min-h-[92vh] flex flex-col shadow-2xl sm:rounded-3xl border border-slate-800 overflow-hidden relative selection:bg-cyan-500/20">
+    <div className="w-full h-full flex flex-col bg-[#070B14] text-slate-100 overflow-hidden relative selection:bg-[#00B074]/30">
       
       {/* ======================================================== */}
       {/* 1. TOP HEADER (VORTEQ B2B FINTECH 2026)                  */}
       {/* ======================================================== */}
-      <header className="sticky top-0 z-40 bg-[#0B192C]/95 backdrop-blur-md px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 shadow-sm">
-        {/* Official Vorteq B2B Brand Lockup */}
-        <div className="flex items-center gap-2">
-          <VorteqLogo size="sm" variant="full" theme="dark" animated={true} />
-          {offlineStats.effectiveOffline ? (
-            <div className="flex items-center gap-1 text-[10px] text-amber-400 font-mono ml-1 pl-2 border-l border-slate-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-              <span className="font-semibold">Modo Offline</span>
-            </div>
-          ) : (
-            <div className="hidden xs:flex items-center gap-1 text-[10px] text-slate-300 font-mono ml-1 pl-2 border-l border-slate-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00B074] animate-pulse" />
-              <span className="text-[#00B074] font-semibold">Red Activa</span>
-            </div>
-          )}
-        </div>
-
-        {/* Right Action Icons */}
-        <div className="flex items-center gap-1.5 text-slate-300">
-          <button
-            onClick={() => setActiveTab('feed')}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:text-white hover:border-slate-700 transition-colors"
-            title="Buscar"
-          >
-            <Search className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => setShowQrModal(true)}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:text-white hover:border-slate-700 transition-colors"
-            title="Escanear Perfil"
-          >
-            <QrCode className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => setShowNotificationsModal(true)}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:text-white hover:border-slate-700 transition-colors relative"
-            title="Notificaciones"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="w-2 h-2 bg-cyan-400 rounded-full absolute top-1.5 right-1.5" />
-          </button>
-
-          <div className="flex items-center gap-1.5 ml-0.5">
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-extrabold ${
-              currentUser.accountType === 'vendor'
-                ? 'bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40'
-                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
-            }`}>
-              {currentUser.accountType === 'vendor' ? (
-                <>
-                  <Store className="w-2.5 h-2.5" />
-                  <span>VENDOR</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="w-2.5 h-2.5" />
-                  <span>CUSTOMER</span>
-                </>
-              )}
-            </span>
-
-            <button
-              onClick={() => setSelectedProfileUser(currentUser)}
-              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 text-white font-bold flex items-center justify-center text-xs border border-cyan-400/30 shadow-xs cursor-pointer"
-              title={`Mi Perfil (${currentUser.accountType === 'vendor' ? 'VENDOR' : 'CUSTOMER'})`}
-            >
-              {currentUser.avatarText || 'US'}
-            </button>
-          </div>
-        </div>
-      </header>
+      
 
       {/* Offline Mode Alert Banner */}
       <OfflineBanner
@@ -1602,73 +1530,99 @@ export const MobileApp: React.FC<MobileAppProps> = ({
       {/* ======================================================== */}
       {/* 3. BOTTOM FLOATING DOCK (6 PESTAÑAS VORTEQ B2B)          */}
       {/* ======================================================== */}
-      <nav className="absolute bottom-0 left-0 right-0 z-40 bg-[#0B192C]/95 backdrop-blur-md border-t border-slate-800 px-1 py-1.5 flex items-center justify-around shadow-lg">
-        <button
-          onClick={() => setActiveTab('inicio')}
-          className={`flex flex-col items-center py-1 px-2 rounded-xl transition-all cursor-pointer ${
-            activeTab === 'inicio' ? 'bg-[#00B074]/15 text-[#00B074] border border-[#00B074]/40 font-bold' : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          <Home className="w-4 h-4" />
-          <span className="text-[9px] font-semibold mt-0.5">Inicio</span>
-        </button>
-
+      {/* STATIC NATIVE IOS BOTTOM BAR */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#09111e]/98 backdrop-blur-2xl border-t border-slate-700/80 px-2 sm:px-6 pt-3 pb-[max(env(safe-area-inset-bottom,0px),32px)] flex items-center justify-around shadow-[0_-12px_40px_rgba(0,0,0,0.85)]">
         <button
           onClick={() => setActiveTab('feed')}
-          className={`flex flex-col items-center py-1 px-2 rounded-xl transition-all cursor-pointer ${
-            activeTab === 'feed' ? 'bg-[#00B074]/15 text-[#00B074] border border-[#00B074]/40 font-bold' : 'text-slate-400 hover:text-white'
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer group ${
+            activeTab === 'feed' ? 'scale-105' : ''
           }`}
         >
-          <Boxes className="w-4 h-4" />
-          <span className="text-[9px] font-semibold mt-0.5">Piso</span>
+          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-1 transition-colors ${
+            activeTab === 'feed' 
+              ? 'bg-[#00B074]/20 text-[#00B074]' 
+              : 'text-slate-400 group-hover:text-slate-200'
+          }`}>
+            <Boxes className="w-5 h-5" />
+          </div>
+          <span className={`text-[11px] tracking-tight ${
+            activeTab === 'feed' 
+              ? 'text-[#00B074] font-bold' 
+              : 'text-slate-400 group-hover:text-slate-200 font-medium'
+          }`}>
+            Explorar
+          </span>
         </button>
 
-        {/* Center Live Price Highlight Button with Vorteq Emerald */}
         <button
           onClick={() => setActiveTab('precios')}
-          className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all relative cursor-pointer ${
-            activeTab === 'precios' ? 'bg-[#00B074] text-white shadow-md shadow-[#00B074]/40 font-bold' : 'text-[#00B074] bg-[#00B074]/10 hover:bg-[#00B074]/20 border border-[#00B074]/30'
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer group ${
+            activeTab === 'precios' ? 'scale-105' : ''
           }`}
         >
-          <TrendingUp className="w-4 h-4" />
-          <span className="text-[9px] font-bold mt-0.5">Precios</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-white absolute top-1 right-1.5 animate-pulse" />
-        </button>
-
-        {/* Performance & Arbitrage 30D Tab */}
-        <button
-          onClick={() => setActiveTab('performance')}
-          className={`flex flex-col items-center py-1 px-2 rounded-xl transition-all cursor-pointer ${
-            activeTab === 'performance' ? 'bg-[#00B074]/15 text-[#00B074] border border-[#00B074]/40 font-bold' : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          <Activity className="w-4 h-4" />
-          <span className="text-[9px] font-semibold mt-0.5">Métricas</span>
+          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-1 transition-colors ${
+            activeTab === 'precios' 
+              ? 'bg-[#00B074]/20 text-[#00B074]' 
+              : 'text-slate-400 group-hover:text-slate-200'
+          }`}>
+            <TrendingUp className="w-5 h-5" />
+          </div>
+          <span className={`text-[11px] tracking-tight ${
+            activeTab === 'precios' 
+              ? 'text-[#00B074] font-bold' 
+              : 'text-slate-400 group-hover:text-slate-200 font-medium'
+          }`}>
+            Precios Spot
+          </span>
         </button>
 
         <button
           onClick={() => setActiveTab('chat')}
-          className={`flex flex-col items-center py-1 px-2 rounded-xl transition-all relative cursor-pointer ${
-            activeTab === 'chat' ? 'bg-[#00B074]/15 text-[#00B074] border border-[#00B074]/40 font-bold' : 'text-slate-400 hover:text-white'
+          className={`flex flex-col items-center justify-center flex-1 py-1 relative transition-all cursor-pointer group ${
+            activeTab === 'chat' ? 'scale-105' : ''
           }`}
         >
-          <MessageSquare className="w-4 h-4" />
-          <span className="text-[9px] font-semibold mt-0.5">Chat</span>
-          {Object.values(chatMessages).flat().length > 0 && (
-            <span className="absolute -top-1 -right-0.5 bg-[#00B074] text-white font-mono text-[8px] font-bold px-1 rounded-full border border-slate-900 min-w-3.5 h-3.5 flex items-center justify-center shadow-xs">
-              {Object.values(chatMessages).flat().length}
-            </span>
-          )}
+          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-1 transition-colors relative ${
+            activeTab === 'chat' 
+              ? 'bg-[#00B074]/20 text-[#00B074]' 
+              : 'text-slate-400 group-hover:text-slate-200'
+          }`}>
+            <MessageSquare className="w-5 h-5" />
+            {Object.values(chatMessages).flat().length > 0 && (
+              <span className="absolute -top-1 right-2 bg-[#00B074] text-white font-mono text-[9px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center shadow-md">
+                {Object.values(chatMessages).flat().length}
+              </span>
+            )}
+          </div>
+          <span className={`text-[11px] tracking-tight ${
+            activeTab === 'chat' 
+              ? 'text-[#00B074] font-bold' 
+              : 'text-slate-400 group-hover:text-slate-200 font-medium'
+          }`}>
+            Chat B2B
+          </span>
         </button>
 
         <button
           onClick={() => setActiveTab('menu')}
-          className={`flex flex-col items-center py-1 px-2 rounded-xl transition-all cursor-pointer ${
-            activeTab === 'menu' ? 'bg-[#00B074]/15 text-[#00B074] border border-[#00B074]/40 font-bold' : 'text-slate-400 hover:text-white'
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer group ${
+            activeTab === 'menu' ? 'scale-105' : ''
           }`}
         >
-          <Menu className="w-4 h-4" />
-          <span className="text-[9px] font-semibold mt-0.5">Menú</span>
+          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-1 transition-colors ${
+            activeTab === 'menu' 
+              ? 'bg-[#00B074]/20 text-[#00B074]' 
+              : 'text-slate-400 group-hover:text-slate-200'
+          }`}>
+            <Settings className="w-5 h-5" />
+          </div>
+          <span className={`text-[11px] tracking-tight ${
+            activeTab === 'menu' 
+              ? 'text-[#00B074] font-bold' 
+              : 'text-slate-400 group-hover:text-slate-200 font-medium'
+          }`}>
+            Mi Cuenta
+          </span>
         </button>
       </nav>
 

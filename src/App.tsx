@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MobileApp } from './components/mobile/MobileApp';
 import { WebAppDashboard } from './components/web/WebAppDashboard';
 import { AuthModal } from './components/auth/AuthModal';
@@ -6,7 +6,6 @@ import { AuthScreen } from './components/auth/AuthScreen';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { CreateOfferModal } from './components/mobile/CreateOfferModal';
 import { SplashScreen } from './components/mobile/SplashScreen';
-import { VorteqLogo } from './components/common/VorteqLogo';
 import { 
   getDatabase, 
   saveUsers, 
@@ -19,65 +18,49 @@ import {
   UserAccount, 
   TradeOffer, 
   ProductPriceLive, 
-  FeaturedStory,
   AppViewMode 
 } from './types';
-import { Smartphone, Globe, ShieldCheck, UserPlus, LogIn, Check, Play, LogOut, Store, ShoppingBag } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 export default function App() {
-  // 4-second Splash Screen state
   const [showSplash, setShowSplash] = useState<boolean>(true);
-
-  // Authentication state (persisted in localStorage)
   const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() => getIsAuthenticated());
-
-  // Load shared database
-  const [db, setDb] = useState(() => getDatabase());
+  const [db] = useState(() => getDatabase());
   const [currentUser, setCurrentUserState] = useState<UserAccount>(db.currentUser);
   const [users, setUsersState] = useState<UserAccount[]>(db.users);
   const [offers, setOffersState] = useState<TradeOffer[]>(db.offers);
-  const [livePrices, setLivePricesState] = useState<ProductPriceLive[]>(db.prices);
-
-  // App mode: mobile view vs Web B2B platform
+  const [livePrices] = useState<ProductPriceLive[]>(db.prices);
   const [viewMode, setViewMode] = useState<AppViewMode>('mobile');
 
-  // Modals
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
   const [bannerToast, setBannerToast] = useState<string | null>(null);
 
-  // Sync users to storage
   const handleUsersUpdate = (newUsers: UserAccount[]) => {
     setUsersState(newUsers);
     saveUsers(newUsers);
   };
 
-  // Sync offers to storage
   const handleOffersUpdate = (newOffers: TradeOffer[]) => {
     setOffersState(newOffers);
     saveOffers(newOffers);
   };
 
-  // User registration / login callback
   const handleLoginSuccess = (user: UserAccount) => {
     setCurrentUserState(user);
     setCurrentUser(user);
     setIsAuthenticated(true);
     setIsAuthenticatedState(true);
     setIsAuthModalOpen(false);
-
-    // If new user, add to database
     if (!users.some((u) => u.id === user.id)) {
       handleUsersUpdate([user, ...users]);
     }
-
-    const roleLabel = user.accountType === 'vendor' ? 'VENDOR (Proveedor)' : 'CUSTOMER (Comprador)';
+    const roleLabel = user.accountType === 'vendor' ? 'VENDOR' : 'CUSTOMER';
     setBannerToast(`¡Bienvenido! Sesión activa como ${user.fullName} [${roleLabel}]`);
     setTimeout(() => setBannerToast(null), 3500);
   };
 
-  // Logout callback
   const handleLogout = () => {
     setIsAuthenticated(false);
     setIsAuthenticatedState(false);
@@ -85,93 +68,49 @@ export default function App() {
     setTimeout(() => setBannerToast(null), 3000);
   };
 
-  // Admin verifies user
   const handleVerifyUser = (userId: string) => {
-    const updated = users.map((u) => {
-      if (u.id === userId) {
-        return {
-          ...u,
-          verifiedStatus: u.verifiedStatus === 'verified' ? ('pending' as const) : ('verified' as const),
-        };
-      }
-      return u;
-    });
+    const updated = users.map((u) => u.id === userId ? { ...u, verifiedStatus: u.verifiedStatus === 'verified' ? ('pending' as const) : ('verified' as const) } : u);
     handleUsersUpdate(updated);
   };
 
-  // Admin toggles user role
   const handleToggleUserRole = (userId: string) => {
-    const updated = users.map((u) => {
-      if (u.id === userId) {
-        return {
-          ...u,
-          role: u.role === 'admin' ? ('trader' as const) : ('admin' as const),
-        };
-      }
-      return u;
-    });
+    const updated = users.map((u) => u.id === userId ? { ...u, role: u.role === 'admin' ? ('trader' as const) : ('admin' as const) } : u);
     handleUsersUpdate(updated);
   };
 
-  // Admin deletes offer
   const handleDeleteOffer = (offerId: string) => {
     const updated = offers.filter((o) => o.id !== offerId);
     handleOffersUpdate(updated);
   };
 
-  // User posts new offer
   const handleCreateOfferSubmit = (newOffer: TradeOffer) => {
-    const updated = [newOffer, ...offers];
-    handleOffersUpdate(updated);
-
-    // Update user offer count
-    const updatedUsers = users.map((u) => {
-      if (u.id === currentUser.id) {
-        return { ...u, offersCount: u.offersCount + 1 };
-      }
-      return u;
-    });
-    handleUsersUpdate(updatedUsers);
-
-    setBannerToast('¡Oferta publicada exitosamente en el piso en vivo!');
+    handleOffersUpdate([newOffer, ...offers]);
+    handleUsersUpdate(users.map((u) => u.id === currentUser.id ? { ...u, offersCount: u.offersCount + 1 } : u));
+    setBannerToast('¡Oferta publicada exitosamente!');
     setTimeout(() => setBannerToast(null), 3000);
   };
 
-  // Toggle save offer
   const handleSaveOfferToggle = (offerId: string) => {
-    const updated = offers.map((o) => {
-      if (o.id === offerId) {
-        return { ...o, isSaved: !o.isSaved };
-      }
-      return o;
-    });
-    handleOffersUpdate(updated);
+    handleOffersUpdate(offers.map((o) => o.id === offerId ? { ...o, isSaved: !o.isSaved } : o));
   };
 
-  // Toggle ignore offer
   const handleIgnoreOfferToggle = (offerId: string) => {
-    const updated = offers.filter((o) => o.id !== offerId);
-    handleOffersUpdate(updated);
+    handleOffersUpdate(offers.filter((o) => o.id !== offerId));
     setBannerToast('Oferta oculta de tu feed');
     setTimeout(() => setBannerToast(null), 2500);
   };
 
-  // Update privacy settings
   const handleUpdatePrivacy = (hidePhone: boolean, hideArchived: boolean) => {
     const updatedUser = { ...currentUser, hidePhone, hideArchived };
     setCurrentUserState(updatedUser);
     setCurrentUser(updatedUser);
-
-    const updatedUsers = users.map((u) => (u.id === currentUser.id ? updatedUser : u));
-    handleUsersUpdate(updatedUsers);
-
-    setBannerToast('Configuración de privacidad guardada correctamente');
+    handleUsersUpdate(users.map((u) => u.id === currentUser.id ? updatedUser : u));
+    setBannerToast('Privacidad guardada');
     setTimeout(() => setBannerToast(null), 3000);
   };
 
   return (
-    <div className="min-h-screen bg-[#060911] flex flex-col font-sans text-slate-100">
-      {/* 4-Second Splash Screen Overlay */}
+    <div className="w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#070B14] flex flex-col font-sans text-slate-100">
       {showSplash && (
         <SplashScreen 
           durationSeconds={4} 
@@ -179,117 +118,19 @@ export default function App() {
         />
       )}
 
-      {/* Universal Top Switcher Bar (App Móvil vs App Web B2B) */}
-      <div className="bg-[#0B192C] text-white px-4 py-2 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs shadow-md sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <VorteqLogo size="sm" variant="full" theme="dark" animated={true} />
-          <span className="text-slate-600 hidden sm:inline">|</span>
-          <span className="text-slate-400 font-mono text-[11px] hidden sm:inline">
-            {viewMode === 'mobile' ? 'Mobile App Experience 2026' : 'Desktop B2B Trading Hub'}
-          </span>
-          {isAuthenticated && (
-            <span className={`hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-              currentUser.accountType === 'vendor'
-                ? 'bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40'
-                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
-            }`}>
-              {currentUser.accountType === 'vendor' ? (
-                <>
-                  <Store className="w-3 h-3" />
-                  <span>VENDOR · {currentUser.companyName}</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="w-3 h-3" />
-                  <span>CUSTOMER · {currentUser.companyName}</span>
-                </>
-              )}
-            </span>
-          )}
-        </div>
-
-        {/* Action Controls */}
-        <div className="flex items-center gap-2">
-          {/* Replay Splash button */}
-          <button
-            onClick={() => setShowSplash(true)}
-            title="Ver Splash Screen de 4 segundos"
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-[#0A192F] hover:bg-[#15253F] border border-slate-700 text-slate-300 rounded-lg text-[11px] font-mono transition-colors cursor-pointer"
-          >
-            <Play className="w-3 h-3 text-[#00B074]" />
-            <span className="hidden sm:inline">Ver Splash (4s)</span>
-          </button>
-
-          {/* Switch Mode Button */}
-          <div className="flex items-center bg-[#0A192F] p-0.5 rounded-lg border border-slate-700">
-            <button
-              onClick={() => setViewMode('mobile')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                viewMode === 'mobile' ? 'bg-[#00B074] text-white font-bold shadow-xs' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>App Móvil</span>
-            </button>
-            <button
-              onClick={() => setViewMode('web')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                viewMode === 'web' ? 'bg-[#00B074] text-white font-bold shadow-xs' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>App Web</span>
-            </button>
-          </div>
-
-          {/* Admin Panel Button */}
-          <button
-            onClick={() => setIsAdminPanelOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-1 bg-purple-950/80 text-purple-300 hover:bg-purple-900 border border-purple-700/80 rounded-lg font-semibold transition-colors cursor-pointer"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Admin</span>
-          </button>
-
-          {/* User Registration / Login Button */}
-          <button
-            onClick={() => setIsAuthModalOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-1 bg-[#0A192F] hover:bg-[#15253F] text-slate-200 border border-slate-700 rounded-lg font-semibold transition-colors cursor-pointer"
-          >
-            <UserPlus className="w-3.5 h-3.5 text-[#00B074]" />
-            <span className="hidden sm:inline">{isAuthenticated ? 'Cambiar Cuenta' : 'Acceso / Registro'}</span>
-          </button>
-
-          {/* Logout Button in Top Bar */}
-          {isAuthenticated && (
-            <button
-              onClick={handleLogout}
-              title="Cerrar sesión y volver al login"
-              className="flex items-center gap-1 px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 rounded-lg font-semibold transition-colors cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Cerrar Sesión</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Toast Notification */}
       {bannerToast && (
-        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-cyan-300 text-xs font-semibold px-4 py-2 rounded-full shadow-2xl border border-cyan-800/80 flex items-center gap-2 animate-bounce">
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-cyan-300 text-xs font-semibold px-4 py-2 rounded-full shadow-2xl border border-cyan-800/80 flex items-center gap-2">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{bannerToast}</span>
         </div>
       )}
 
-      {/* Flow check: If Splash finished and user NOT authenticated, render AuthScreen */}
       {!showSplash && !isAuthenticated ? (
         <AuthScreen
           availableUsers={users}
           onLoginSuccess={handleLoginSuccess}
         />
       ) : (
-        /* Authenticated Main View: Mobile or Web (Interconnected) */
         <>
           {isAdminPanelOpen ? (
             <AdminPanel
@@ -301,8 +142,7 @@ export default function App() {
               onClose={() => setIsAdminPanelOpen(false)}
             />
           ) : viewMode === 'mobile' ? (
-            /* Mobile App View with Modern 2026 Fintech Structure */
-            <div className="flex-1 py-4 sm:py-6 px-2 flex justify-center items-start">
+            <div className="flex-1 w-full h-full overflow-hidden flex flex-col bg-[#070B14]">
               <MobileApp
                 currentUser={currentUser}
                 users={users}
@@ -320,7 +160,6 @@ export default function App() {
               />
             </div>
           ) : (
-            /* Web App View (Separated Desktop Web Platform sharing exact same DB) */
             <WebAppDashboard
               currentUser={currentUser}
               users={users}
@@ -337,7 +176,6 @@ export default function App() {
         </>
       )}
 
-      {/* Global Modals */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
