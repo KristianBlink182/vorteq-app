@@ -47,14 +47,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   }, [durationSeconds, onFinish]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0B192C] text-white flex flex-col justify-between items-center p-6 select-none animate-fadeIn">
-      {/* Background ambient glow effect using Vorteq brand colors */}
+    <div className="fixed inset-0 z-50 bg-[#F8FAFC] text-[#0B192C] flex flex-col justify-between items-center p-6 select-none animate-fadeIn">
+      {/* Background subtle ambient glow effect using Vorteq brand colors */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#00B074]/15 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#0B192C]/80 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#00B074]/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#0B192C]/5 rounded-full blur-3xl" />
         {/* Subtle grid lines */}
         <div 
-          className="absolute inset-0 opacity-[0.04]" 
+          className="absolute inset-0 opacity-[0.03]" 
           style={{ 
             backgroundImage: 'radial-gradient(#00B074 1px, transparent 1px)', 
             backgroundSize: '24px 24px' 
@@ -64,14 +64,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
       {/* Top Header: Security badge and Skip button */}
       <div className="w-full max-w-md flex items-center justify-between z-10 pt-4">
-        <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#00B074] bg-[#0A192F]/80 border border-[#00B074]/40 px-3 py-1 rounded-full shadow-xs">
+        <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#008A5B] bg-[#E6F7F0] border border-[#00B074]/40 px-3 py-1 rounded-full shadow-2xs">
           <span className="w-2 h-2 rounded-full bg-[#00B074] animate-ping" />
-          <span className="font-semibold tracking-wider">VORTEQ SECURE CORE</span>
+          <span className="font-bold tracking-wider">VORTEQ SECURE CORE</span>
         </div>
 
         <button
           onClick={onFinish}
-          className="flex items-center gap-1 text-xs text-slate-400 hover:text-white bg-[#0A192F]/90 hover:bg-[#1E293B] px-3.5 py-1.5 rounded-full border border-slate-700/60 transition-colors"
+          className="flex items-center gap-1 text-xs text-slate-500 hover:text-[#0B192C] bg-white hover:bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200 shadow-2xs transition-all cursor-pointer font-medium"
         >
           <span>Saltar ({secondsLeft}s)</span>
           <ArrowRight className="w-3 h-3 text-[#00B074]" />
@@ -79,37 +79,37 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       </div>
 
       {/* Center: Hero Branding & Dynamic Holographic Vorteq Logo */}
-      <div className="flex flex-col items-center text-center z-10 space-y-7 my-auto">
+      <div className="flex flex-col items-center text-center z-10 space-y-6 my-auto">
         <div className="relative">
           {/* Animated concentric rings */}
           <div className="absolute inset-0 -m-6 rounded-full border border-[#00B074]/20 animate-spin" style={{ animationDuration: '14s' }} />
-          <div className="absolute inset-0 -m-10 rounded-full border border-[#00B074]/10 animate-ping" style={{ animationDuration: '3.5s' }} />
+          <div className="absolute inset-0 -m-10 rounded-full border border-[#00B074]/15 animate-ping" style={{ animationDuration: '3.5s' }} />
 
           {/* Central White Glass Card for High Contrast Logo Display */}
-          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white p-1 shadow-2xl shadow-[#00B074]/20 flex items-center justify-center border-2 border-[#00B074]/40">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white p-2 shadow-xl shadow-slate-200/60 flex items-center justify-center border-2 border-[#00B074]/30">
             <div className="w-full h-full bg-[#FAFAFA] rounded-[22px] flex flex-col items-center justify-center p-2 relative overflow-hidden">
               <VorteqLogo size="lg" variant="icon" theme="light" animated={true} />
             </div>
           </div>
         </div>
 
-        <div className="space-y-2.5 max-w-xs">
+        <div className="space-y-2 max-w-xs">
           {/* Official Vorteq B2B Lockup */}
           <div className="flex items-baseline justify-center">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0B192C]">
               Vorteq
             </h1>
             <span className="text-3xl sm:text-4xl font-extrabold text-[#00B074] ml-2 tracking-tight">
               B2B
             </span>
           </div>
-          <p className="text-xs text-slate-300 font-medium leading-relaxed">
+          <p className="text-xs text-slate-500 font-medium leading-relaxed">
             Plataforma institucional de comercio mayorista de electrónica. Cotizaciones Spot en vivo, custodia y arbitraje global.
           </p>
         </div>
 
         {/* Global Hubs active badges */}
-        <div className="flex items-center gap-2 text-[10px] font-mono text-slate-300 bg-[#0A192F]/90 border border-[#00B074]/30 px-3.5 py-1.5 rounded-xl shadow-xs">
+        <div className="flex items-center gap-2 text-[10px] font-mono text-slate-600 bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-xl shadow-2xs font-semibold">
           <Globe className="w-3.5 h-3.5 text-[#00B074]" />
           <span>MIA ⇄ HKG ⇄ DXB ⇄ FRA ⇄ PTY</span>
         </div>
@@ -118,7 +118,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       {/* Bottom Loading Progress Bar & Status */}
       <div className="w-full max-w-xs space-y-3 z-10 pb-4">
         <div className="flex items-center justify-between text-[11px] font-mono">
-          <span className="text-slate-300 flex items-center gap-1.5">
+          <span className="text-slate-600 flex items-center gap-1.5 font-medium">
             <Zap className="w-3.5 h-3.5 text-[#00B074] animate-bounce" />
             {progress < 40 
               ? 'Sincronizando Red Vorteq...' 
@@ -126,15 +126,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
               ? 'Cargando Cotizaciones Spot 24h...' 
               : 'Verificando Certificados B2B...'}
           </span>
-          <span className="text-[#00B074] font-bold tabular-nums">
+          <span className="text-[#008A5B] font-bold tabular-nums">
             {Math.round(progress)}%
           </span>
         </div>
 
         {/* Vorteq Emerald Progress Line */}
-        <div className="w-full h-2 bg-[#0A192F] rounded-full overflow-hidden p-0.5 border border-slate-700/50">
+        <div className="w-full h-2 bg-slate-200/80 rounded-full overflow-hidden p-0.5 border border-slate-200">
           <div 
-            className="h-full bg-gradient-to-r from-[#0B192C] via-[#00B074] to-[#05D68E] rounded-full transition-all duration-75 shadow-sm shadow-[#00B074]/50"
+            className="h-full bg-gradient-to-r from-[#0B192C] via-[#00B074] to-[#05D68E] rounded-full transition-all duration-75 shadow-xs"
             style={{ width: `${progress}%` }}
           />
         </div>

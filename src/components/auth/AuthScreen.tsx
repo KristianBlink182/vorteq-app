@@ -160,7 +160,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         countryFlag: '🇺🇸',
         companySize: '$10M - $25M',
         verifiedStatus: 'verified',
-        role: 'trader',
+        role: 'vendor',
         accountType: 'vendor',
         taxId: 'US-FL-902148',
         city: 'Miami, FL',
@@ -208,7 +208,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       address: address.trim() || 'Parque Industrial Tecnológico',
       companySize,
       verifiedStatus: 'verified',
-      role: 'trader',
+      role: selectedRole,
       accountType: selectedRole,
       password: password || 'Vorteq2026!',
       // Vendor fields
@@ -243,14 +243,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const demoCustomer = availableUsers.find((u) => u.accountType === 'customer' || u.id === 'user-it-squad') || availableUsers[1] || availableUsers[0];
 
   return (
-    <div className="min-h-screen bg-[#060911] text-slate-100 flex flex-col justify-center items-center py-8 px-4 sm:px-6 relative overflow-hidden select-none">
-      {/* Background ambient lighting */}
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0B192C] flex flex-col justify-center items-center py-8 px-4 sm:px-6 relative overflow-hidden select-none">
+      {/* Subtle background ambient lighting with Vorteq brand colors */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#00B074]/15 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-[#0B192C]/80 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-[#0284c7]/15 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#00B074]/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-[#0B192C]/5 rounded-full blur-3xl" />
         <div 
-          className="absolute inset-0 opacity-[0.03]" 
+          className="absolute inset-0 opacity-[0.025]" 
           style={{ 
             backgroundImage: 'radial-gradient(#00B074 1px, transparent 1px)', 
             backgroundSize: '24px 24px' 
@@ -259,34 +258,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       </div>
 
       {/* Main Container Card */}
-      <div className="relative z-10 w-full max-w-2xl bg-[#0B192C]/90 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl shadow-black/80 overflow-hidden">
+      <div className="relative z-10 w-full max-w-2xl bg-white border border-slate-200/90 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden">
         {/* Top Header with Vorteq Brand Lockup */}
-        <div className="p-6 sm:p-8 border-b border-slate-800 text-center relative bg-gradient-to-b from-[#0e2238] to-[#0B192C]">
+        <div className="p-6 sm:p-8 border-b border-slate-100 text-center relative bg-gradient-to-b from-slate-50/80 to-white">
           <div className="flex justify-center mb-3">
-            <VorteqLogo size="lg" variant="full" theme="dark" animated={true} />
+            <VorteqLogo size="lg" variant="full" theme="light" animated={true} />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+          <h2 className="text-xl sm:text-2xl font-black text-[#0B192C] tracking-tight mt-1">
             Plataforma Mayorista Global de Electrónica
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-md mx-auto">
-            Acceso interconectado en tiempo real para Proveedores (Vendors) y Compradores (Customers).
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
+            Acceso exclusivo para Proveedores (Vendors) y Compradores (Customers) de tecnología.
           </p>
 
-          {/* Interconnection badge */}
-          <div className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-[#00B074]/10 border border-[#00B074]/30 rounded-full text-[11px] font-mono text-[#00B074]">
-            <span className="w-2 h-2 rounded-full bg-[#00B074] animate-ping" />
-            <span>SISTEMA INTERCONECTADO · APP MÓVIL & WEB B2B</span>
-          </div>
-
           {/* Mode Tabs: Iniciar Sesión vs Registrarse */}
-          <div className="flex bg-[#07111e] p-1.5 rounded-2xl border border-slate-800 mt-6 max-w-md mx-auto shadow-inner">
+          <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 mt-6 max-w-md mx-auto shadow-inner">
             <button
               type="button"
               onClick={() => setMode('login')}
               className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 mode === 'login'
-                  ? 'bg-[#00B074] text-white shadow-md shadow-[#00B074]/30 font-extrabold'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#00B074] text-white shadow-md shadow-[#00B074]/25 font-extrabold'
+                  : 'text-slate-600 hover:text-[#0B192C]'
               }`}
             >
               <span>Iniciar Sesión</span>
@@ -296,8 +289,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               onClick={() => setMode('register')}
               className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 mode === 'register'
-                  ? 'bg-[#00B074] text-white shadow-md shadow-[#00B074]/30 font-extrabold'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#00B074] text-white shadow-md shadow-[#00B074]/25 font-extrabold'
+                  : 'text-slate-600 hover:text-[#0B192C]'
               }`}
             >
               <span>Registrarse</span>
@@ -314,47 +307,47 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             <div className="space-y-6">
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 {loginError && (
-                  <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs rounded-xl flex items-center gap-2">
+                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 text-xs rounded-xl flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                     <span>{loginError}</span>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Correo Corporativo o Usuario (@handle)
                   </label>
                   <div className="relative">
-                    <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                     <input
                       type="text"
                       required
-                      placeholder="ejemplo@empresa.com o @emaavy.vedant"
+                      placeholder="ejemplo@empresa.com o @vorteq.miami"
                       value={loginEmailOrUser}
                       onChange={(e) => setLoginEmailOrUser(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#07111e] border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074] transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074] transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Contraseña
                   </label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
                       placeholder="••••••••••••"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 py-2.5 bg-[#07111e] border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074] transition-colors"
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074] transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300 transition-colors"
+                      className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -363,7 +356,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#00B074] hover:bg-[#009663] text-white font-bold text-sm rounded-xl shadow-lg shadow-[#00B074]/25 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-[#00B074] hover:bg-[#009663] text-white font-bold text-sm rounded-xl shadow-md shadow-[#00B074]/25 transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>Ingresar a Vorteq B2B</span>
                   <ArrowRight className="w-4 h-4" />
@@ -371,12 +364,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </form>
 
               {/* Fast 1-Click Demo Accounts */}
-              <div className="pt-4 border-t border-slate-800 space-y-3">
+              <div className="pt-4 border-t border-slate-100 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-slate-400 tracking-wider">
+                  <span className="text-[11px] font-mono text-slate-500 tracking-wider font-semibold">
                     ACCESO RÁPIDO PARA PRUEBAS (1-CLICK DEMO):
                   </span>
-                  <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">
+                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono font-bold">
                     INSTANTÁNEO
                   </span>
                 </div>
@@ -386,22 +379,22 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   <button
                     type="button"
                     onClick={() => onLoginSuccess(demoVendor)}
-                    className="p-3.5 bg-[#07111e] hover:bg-[#0e2137] border border-[#00B074]/40 hover:border-[#00B074] rounded-2xl text-left transition-all group cursor-pointer shadow-sm"
+                    className="p-3.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 hover:border-[#00B074] rounded-2xl text-left transition-all group cursor-pointer shadow-2xs"
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="px-2 py-0.5 rounded-full bg-[#00B074]/20 text-[#00B074] font-extrabold text-[10px] font-mono flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-[#E6F7F0] text-[#008A5B] font-extrabold text-[10px] font-mono flex items-center gap-1 border border-[#00B074]/30">
                         <Store className="w-3 h-3" />
                         <span>VENDOR</span>
                       </span>
                       <span className="text-xs text-slate-400">{demoVendor.countryFlag}</span>
                     </div>
-                    <div className="font-bold text-white text-xs sm:text-sm group-hover:text-[#00B074] transition-colors">
+                    <div className="font-bold text-[#0B192C] text-xs sm:text-sm group-hover:text-[#008A5B] transition-colors">
                       {demoVendor.fullName}
                     </div>
-                    <div className="text-[11px] text-slate-400 truncate">
+                    <div className="text-[11px] text-slate-500 truncate">
                       {demoVendor.companyName}
                     </div>
-                    <div className="text-[10px] text-emerald-400/80 font-mono mt-1 flex items-center gap-1">
+                    <div className="text-[10px] text-[#008A5B] font-mono mt-1 flex items-center gap-1 font-semibold">
                       <Zap className="w-3 h-3" />
                       <span>Probar como Proveedor Mayorista</span>
                     </div>
@@ -411,22 +404,22 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   <button
                     type="button"
                     onClick={() => onLoginSuccess(demoCustomer)}
-                    className="p-3.5 bg-[#07111e] hover:bg-[#0e2137] border border-cyan-500/40 hover:border-cyan-400 rounded-2xl text-left transition-all group cursor-pointer shadow-sm"
+                    className="p-3.5 bg-slate-50 hover:bg-blue-50/50 border border-slate-200 hover:border-blue-500 rounded-2xl text-left transition-all group cursor-pointer shadow-2xs"
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 font-extrabold text-[10px] font-mono flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-extrabold text-[10px] font-mono flex items-center gap-1 border border-blue-200">
                         <ShoppingBag className="w-3 h-3" />
                         <span>CUSTOMER</span>
                       </span>
                       <span className="text-xs text-slate-400">{demoCustomer.countryFlag}</span>
                     </div>
-                    <div className="font-bold text-white text-xs sm:text-sm group-hover:text-cyan-400 transition-colors">
+                    <div className="font-bold text-[#0B192C] text-xs sm:text-sm group-hover:text-blue-700 transition-colors">
                       {demoCustomer.fullName}
                     </div>
-                    <div className="text-[11px] text-slate-400 truncate">
+                    <div className="text-[11px] text-slate-500 truncate">
                       {demoCustomer.companyName}
                     </div>
-                    <div className="text-[10px] text-cyan-400/80 font-mono mt-1 flex items-center gap-1">
+                    <div className="text-[10px] text-blue-700 font-mono mt-1 flex items-center gap-1 font-semibold">
                       <Zap className="w-3 h-3" />
                       <span>Probar como Comprador / Cliente</span>
                     </div>
@@ -441,7 +434,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             <form onSubmit={handleRegisterSubmit} className="space-y-6">
               {/* PASO 1: SELECCIÓN OBLIGATORIA ENTRE VENDOR O CUSTOMER */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
                   1. Selecciona tu Tipo de Cuenta Mayorista:
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -450,12 +443,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     onClick={() => setSelectedRole('vendor')}
                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                       selectedRole === 'vendor'
-                        ? 'bg-[#00B074]/10 border-[#00B074] shadow-lg shadow-[#00B074]/20'
-                        : 'bg-[#07111e] border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100'
+                        ? 'bg-[#E6F7F0]/60 border-[#00B074] shadow-md shadow-[#00B074]/15'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300 opacity-80 hover:opacity-100'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="w-9 h-9 rounded-xl bg-[#00B074]/20 border border-[#00B074]/40 flex items-center justify-center text-[#00B074]">
+                      <div className="w-9 h-9 rounded-xl bg-[#E6F7F0] border border-[#00B074]/40 flex items-center justify-center text-[#008A5B]">
                         <Store className="w-5 h-5" />
                       </div>
                       {selectedRole === 'vendor' ? (
@@ -463,16 +456,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                           <Check className="w-3.5 h-3.5" />
                         </span>
                       ) : (
-                        <span className="w-5 h-5 rounded-full border border-slate-700" />
+                        <span className="w-5 h-5 rounded-full border border-slate-300" />
                       )}
                     </div>
-                    <div className="font-black text-white text-sm sm:text-base">
+                    <div className="font-black text-[#0B192C] text-sm sm:text-base">
                       VENDOR (Proveedor)
                     </div>
-                    <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                    <p className="text-[11px] text-slate-600 mt-1 leading-snug">
                       Vendo lotes al por mayor, smartphones, laptops o componentes. Publico inventario y gestiono stock.
                     </p>
-                    <div className="mt-2.5 flex items-center gap-1.5 text-[10px] text-[#00B074] font-mono font-semibold">
+                    <div className="mt-2.5 flex items-center gap-1.5 text-[10px] text-[#008A5B] font-mono font-bold">
                       <Boxes className="w-3 h-3" />
                       <span>Publicar ofertas · Escrow Seller</span>
                     </div>
@@ -483,29 +476,29 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     onClick={() => setSelectedRole('customer')}
                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                       selectedRole === 'customer'
-                        ? 'bg-cyan-500/10 border-cyan-400 shadow-lg shadow-cyan-500/20'
-                        : 'bg-[#07111e] border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100'
+                        ? 'bg-blue-50/60 border-blue-600 shadow-md shadow-blue-500/15'
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300 opacity-80 hover:opacity-100'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+                      <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
                         <ShoppingBag className="w-5 h-5" />
                       </div>
                       {selectedRole === 'customer' ? (
-                        <span className="w-5 h-5 rounded-full bg-cyan-400 text-black flex items-center justify-center text-xs">
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">
                           <Check className="w-3.5 h-3.5" />
                         </span>
                       ) : (
-                        <span className="w-5 h-5 rounded-full border border-slate-700" />
+                        <span className="w-5 h-5 rounded-full border border-slate-300" />
                       )}
                     </div>
-                    <div className="font-black text-white text-sm sm:text-base">
+                    <div className="font-black text-[#0B192C] text-sm sm:text-base">
                       CUSTOMER (Cliente)
                     </div>
-                    <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                    <p className="text-[11px] text-slate-600 mt-1 leading-snug">
                       Compro lotes de tecnología para retail, e-commerce, tiendas o distribución regional.
                     </p>
-                    <div className="mt-2.5 flex items-center gap-1.5 text-[10px] text-cyan-400 font-mono font-semibold">
+                    <div className="mt-2.5 flex items-center gap-1.5 text-[10px] text-blue-700 font-mono font-bold">
                       <CreditCard className="w-3 h-3" />
                       <span>Comprar lotes · Precios mayoristas</span>
                     </div>
@@ -514,96 +507,96 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </div>
 
               {/* PASO 2: DATOS GENERALES DEL PERFIL */}
-              <div className="space-y-3 pt-2 border-t border-slate-800">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
                   2. Datos de Perfil y Empresa:
                 </label>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">Nombre Completo del Contacto</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">Nombre Completo del Contacto</label>
                     <input
                       type="text"
                       required
                       placeholder="Ej. Carlos Mendoza"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">Usuario (@handle)</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">Usuario (@handle)</label>
                     <input
                       type="text"
                       required
                       placeholder="@empresa.trader"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074]"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">Razón Social / Empresa</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">Razón Social / Empresa</label>
                     <input
                       type="text"
                       required
                       placeholder="Ej. Iberia Telecom Wholesale S.L."
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">RUC / Tax ID / NIF Fiscal</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">RUC / Tax ID / NIF Fiscal</label>
                     <input
                       type="text"
                       required
                       placeholder="Ej. 20601982731 o US-EIN-9842"
                       value={taxId}
                       onChange={(e) => setTaxId(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074]"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">Email Corporativo</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">Email Corporativo</label>
                     <input
                       type="email"
                       required
                       placeholder="contacto@empresa.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">WhatsApp / Móvil Comercial</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">WhatsApp / Móvil Comercial</label>
                     <input
                       type="text"
                       required
                       placeholder="+1 305 450 8900"
                       value={phoneWhatsApp}
                       onChange={(e) => setPhoneWhatsApp(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074]"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">País</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">País</label>
                     <select
                       value={country}
                       onChange={(e) => handleCountrySelect(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] focus:outline-none focus:bg-white focus:border-[#00B074]"
                     >
                       {countriesList.map((c) => (
                         <option key={c.name} value={c.name}>
@@ -614,26 +607,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">Ciudad</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">Ciudad</label>
                     <input
                       type="text"
                       required
                       placeholder="Ej. Miami, FL"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">Contraseña</label>
+                    <label className="block text-[11px] text-slate-600 font-medium mb-1">Contraseña</label>
                     <input
                       type="password"
                       required
                       placeholder="Mínimo 6 caracteres"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00B074]"
                     />
                   </div>
                 </div>
@@ -641,19 +634,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
               {/* PASO 3: CAMPOS ESPECÍFICOS SEGÚN VENDOR O CUSTOMER */}
               {selectedRole === 'vendor' ? (
-                <div className="space-y-3 pt-2 border-t border-slate-800 bg-[#00B074]/5 p-4 rounded-2xl border border-[#00B074]/30">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#00B074] uppercase tracking-wider">
+                <div className="space-y-3 pt-2 bg-[#E6F7F0]/40 p-4 rounded-2xl border border-[#00B074]/30">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#008A5B] uppercase tracking-wider">
                     <Store className="w-4 h-4" />
                     <span>3. Información Específica del VENDOR (Proveedor):</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] text-slate-300 mb-1">Tipo de Vendedor</label>
+                      <label className="block text-[11px] text-slate-700 font-medium mb-1">Tipo de Vendedor</label>
                       <select
                         value={vendorType}
                         onChange={(e) => setVendorType(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-[#00B074]"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] focus:outline-none focus:border-[#00B074]"
                       >
                         <option value="Distribuidor Oficial de Marca">Distribuidor Oficial de Marca</option>
                         <option value="Importador Mayorista Directo">Importador Mayorista Directo</option>
@@ -663,11 +656,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-[11px] text-slate-300 mb-1">Capacidad Mensual de Stock</label>
+                      <label className="block text-[11px] text-slate-700 font-medium mb-1">Capacidad Mensual de Stock</label>
                       <select
                         value={vendorSupplyCapacity}
                         onChange={(e) => setVendorSupplyCapacity(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-[#00B074]"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] focus:outline-none focus:border-[#00B074]"
                       >
                         <option value="$10,000 - $50,000 USD/mes">$10,000 - $50,000 USD/mes</option>
                         <option value="$50,000 - $250,000 USD/mes">$50,000 - $250,000 USD/mes</option>
@@ -678,7 +671,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-300 mb-1">Categorías de Inventario que Provees:</label>
+                    <label className="block text-[11px] text-slate-700 font-medium mb-1">Categorías de Inventario que Provees:</label>
                     <div className="flex flex-wrap gap-1.5">
                       {[
                         'Smartphones Apple & Samsung',
@@ -694,8 +687,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                           onClick={() => toggleVendorCategory(cat)}
                           className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                             vendorCategories.includes(cat)
-                              ? 'bg-[#00B074] text-white'
-                              : 'bg-slate-800 text-slate-400 hover:text-white'
+                              ? 'bg-[#00B074] text-white shadow-xs'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:text-[#0B192C]'
                           }`}
                         >
                           {vendorCategories.includes(cat) && <Check className="w-3 h-3 inline mr-1" />}
@@ -707,43 +700,43 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] text-slate-300 mb-1">Pedido Mínimo (MOQ)</label>
+                      <label className="block text-[11px] text-slate-700 font-medium mb-1">Pedido Mínimo (MOQ)</label>
                       <input
                         type="text"
                         value={vendorMoq}
                         onChange={(e) => setVendorMoq(e.target.value)}
                         placeholder="Ej. 10 unidades o $2,500 USD"
-                        className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:border-[#00B074]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] text-slate-300 mb-1">Garantía Ofrecida</label>
+                      <label className="block text-[11px] text-slate-700 font-medium mb-1">Garantía Ofrecida</label>
                       <input
                         type="text"
                         value={vendorWarrantyTerms}
                         onChange={(e) => setVendorWarrantyTerms(e.target.value)}
                         placeholder="Ej. 12 Meses Garantía Oficial AppleCare"
-                        className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00B074]"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 focus:outline-none focus:border-[#00B074]"
                       />
                     </div>
                   </div>
                 </div>
               ) : (
                 /* ESPECÍFICO DE CUSTOMER (CLIENTE / COMPRADOR) */
-                <div className="space-y-3 pt-2 border-t border-slate-800 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/30">
-                  <div className="flex items-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                <div className="space-y-3 pt-2 bg-blue-50/40 p-4 rounded-2xl border border-blue-200">
+                  <div className="flex items-center gap-2 text-xs font-bold text-blue-700 uppercase tracking-wider">
                     <ShoppingBag className="w-4 h-4" />
                     <span>3. Información Específica del CUSTOMER (Comprador):</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] text-slate-300 mb-1">Tipo de Negocio</label>
+                      <label className="block text-[11px] text-slate-700 font-medium mb-1">Tipo de Negocio</label>
                       <select
                         value={customerBusinessType}
                         onChange={(e) => setCustomerBusinessType(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] focus:outline-none focus:border-blue-600"
                       >
                         <option value="Tienda Retail de Tecnología">Tienda Retail de Tecnología</option>
                         <option value="Cadena de Tiendas Físicas">Cadena de Tiendas Físicas</option>
@@ -754,11 +747,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-[11px] text-slate-300 mb-1">Presupuesto Mensual de Compra</label>
+                      <label className="block text-[11px] text-slate-700 font-medium mb-1">Presupuesto Mensual de Compra</label>
                       <select
                         value={customerMonthlyBudget}
                         onChange={(e) => setCustomerMonthlyBudget(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] focus:outline-none focus:border-blue-600"
                       >
                         <option value="$5,000 - $20,000 USD/mes">$5,000 - $20,000 USD/mes</option>
                         <option value="$20,000 - $100,000 USD/mes">$20,000 - $100,000 USD/mes</option>
@@ -769,7 +762,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-300 mb-1">Métodos de Pago Preferidos:</label>
+                    <label className="block text-[11px] text-slate-700 font-medium mb-1">Métodos de Pago Preferidos:</label>
                     <div className="flex flex-wrap gap-1.5">
                       {[
                         'Transferencia Bancaria (SWIFT)',
@@ -783,8 +776,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                           onClick={() => toggleCustomerPayment(m)}
                           className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                             customerPaymentMethods.includes(m)
-                              ? 'bg-cyan-500 text-black font-bold'
-                              : 'bg-slate-800 text-slate-400 hover:text-white'
+                              ? 'bg-blue-600 text-white font-bold shadow-xs'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:text-[#0B192C]'
                           }`}
                         >
                           {customerPaymentMethods.includes(m) && <Check className="w-3 h-3 inline mr-1" />}
@@ -795,11 +788,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-300 mb-1">Preferencia Logística / Entrega</label>
+                    <label className="block text-[11px] text-slate-700 font-medium mb-1">Preferencia Logística / Entrega</label>
                     <select
                       value={customerDeliveryPref}
                       onChange={(e) => setCustomerDeliveryPref(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#07111e] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] focus:outline-none focus:border-blue-600"
                     >
                       <option value="Envío Aéreo Express a Almacén">Envío Aéreo Express a Almacén</option>
                       <option value="Retiro Directo en Bodega del Proveedor (Ex-Works)">Retiro Directo en Bodega del Proveedor (Ex-Works)</option>
@@ -818,7 +811,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   onChange={(e) => setAcceptTerms(e.target.checked)}
                   className="mt-0.5 rounded text-[#00B074] focus:ring-0"
                 />
-                <label htmlFor="terms" className="text-[11px] text-slate-400 leading-snug cursor-pointer">
+                <label htmlFor="terms" className="text-[11px] text-slate-500 leading-snug cursor-pointer">
                   Acepto los Términos de Comercio Mayorista B2B, Verificación Antifraude y Protocolos de Custodia Escrow de Vorteq.
                 </label>
               </div>
@@ -827,10 +820,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <button
                 type="submit"
                 disabled={!acceptTerms}
-                className={`w-full py-3 font-bold text-sm rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                className={`w-full py-3 font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ${
                   selectedRole === 'vendor'
-                    ? 'bg-[#00B074] hover:bg-[#009663] text-white shadow-[#00B074]/30'
-                    : 'bg-cyan-500 hover:bg-cyan-400 text-black shadow-cyan-500/30'
+                    ? 'bg-[#00B074] hover:bg-[#009663] text-white shadow-[#00B074]/25'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/25'
                 }`}
               >
                 <span>

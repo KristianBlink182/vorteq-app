@@ -1,4 +1,4 @@
-import { UserAccount, TradeOffer, ProductPriceLive, FeaturedStory, ChatMessage, AdminLog } from '../types';
+import { UserAccount, TradeOffer, ProductPriceLive, FeaturedStory, ChatMessage } from '../types';
 
 const STORAGE_KEY_PREFIX = 'vorteq_b2b_';
 
@@ -69,37 +69,37 @@ export const INITIAL_USERS: UserAccount[] = [
     createdAt: '2026-02-10',
   },
   {
-    id: 'user-admin',
-    username: '@admin.global',
-    fullName: 'Admin Principal',
-    companyName: 'Vorteq B2B Operations HQ',
-    email: 'admin@vorteqb2b.com',
-    phoneWhatsApp: '+13059871122',
+    id: 'user-miami-vendor',
+    username: '@vorteq.miami',
+    fullName: 'Carlos Mendoza',
+    companyName: 'Miami Global Trading LLC',
+    email: 'carlos@miamiglobaltrading.com',
+    phoneWhatsApp: '+13054902189',
     country: 'United States',
     countryFlag: '🇺🇸',
-    companySize: '>$50M',
+    companySize: '$25M - $50M',
     verifiedStatus: 'verified',
-    role: 'admin',
+    role: 'trader',
     accountType: 'vendor',
     taxId: 'US-FL-38914829',
     city: 'Miami, Florida',
-    address: '8400 NW 36th St, Doral Logistics Center',
-    vendorType: 'Distribuidor Oficial Master',
-    vendorCategories: ['Smartphones', 'Laptops', 'Gaming', 'Componentes'],
+    address: '8400 NW 36th St, Doral Free Trade Center',
+    vendorType: 'Distribuidor Mayorista Master',
+    vendorCategories: ['Smartphones Apple & Samsung', 'MacBooks', 'Gaming & Consolas'],
     vendorSupplyCapacity: '>$1,000,000 USD/mes',
-    vendorMoq: 'Flexible',
-    vendorWarrantyTerms: 'Garantía Directa de Fábrica 12 Meses',
-    avatarText: 'VQ',
+    vendorMoq: '10 unidades',
+    vendorWarrantyTerms: 'Garantía Directa 12 Meses / RMA 48h',
+    avatarText: 'MG',
     avatarBgColor: '#00B074',
-    endorsements: ['Vorteq Official B2B', 'GSMA Partner', 'Escrow Custodian'],
-    exhibitions: ["MWC Barcelona '26", "CES Vegas '26"],
-    offersCount: 2,
-    subscribersCount: 1420,
-    followingCount: 50,
-    chatsCount: 95,
+    endorsements: ['Vorteq Certified', 'GSMA Partner', 'Escrow Verified'],
+    exhibitions: ["Miami '26", "Hong Kong '26"],
+    offersCount: 8,
+    subscribersCount: 340,
+    followingCount: 12,
+    chatsCount: 28,
     hidePhone: false,
     hideArchived: false,
-    createdAt: '2025-10-01',
+    createdAt: '2026-01-05',
   }
 ];
 
@@ -599,9 +599,11 @@ export const setCurrentUser = (user: UserAccount) => {
 
 export const getIsAuthenticated = (): boolean => {
   try {
-    return localStorage.getItem(STORAGE_KEY_PREFIX + 'authenticated') === 'true';
+    const val = localStorage.getItem(STORAGE_KEY_PREFIX + 'authenticated');
+    if (val === 'false') return false;
+    return true;
   } catch {
-    return false;
+    return true;
   }
 };
 

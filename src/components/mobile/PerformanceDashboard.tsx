@@ -232,20 +232,20 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   return (
     <div className="p-4 space-y-4">
       {/* 1. TOP HEADER & TIMEFRAME SELECTOR */}
-      <div className="bg-gradient-to-br from-[#0B192C] via-[#091424] to-[#040911] border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-[#00B074]/15 border border-[#00B074]/40 text-[#00B074] flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-[#E6F7F0] border border-[#00B074]/30 text-[#008A5B] flex items-center justify-center shadow-xs">
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-white tracking-wide">Performance & Arbitraje</h3>
-                <span className="px-2 py-0.5 rounded-full bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40 text-[9px] font-mono font-bold">
+                <h3 className="text-sm font-bold text-[#0B192C] tracking-wide">Performance & Arbitraje</h3>
+                <span className="px-2 py-0.5 rounded-full bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30 text-[9px] font-mono font-bold">
                   LIVE 30D
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-500 font-medium">
                 Crecimiento histórico de volumen y ahorro neto mayorista
               </p>
             </div>
@@ -253,20 +253,20 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         </div>
 
         {/* Time range filter pills */}
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
           <div className="flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[11px] font-mono text-slate-400">Rango:</span>
+            <span className="text-[11px] font-mono text-slate-500 font-semibold">Rango:</span>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => setTimeRange('7d')}
               className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
                 timeRange === '7d' 
-                  ? 'bg-[#00B074] text-white shadow-xs' 
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-[#0B192C] shadow-xs' 
+                  : 'text-slate-500 hover:text-[#0B192C]'
               }`}
             >
               7 Días
@@ -276,8 +276,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               onClick={() => setTimeRange('14d')}
               className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
                 timeRange === '14d' 
-                  ? 'bg-[#00B074] text-white shadow-xs' 
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-[#0B192C] shadow-xs' 
+                  : 'text-slate-500 hover:text-[#0B192C]'
               }`}
             >
               14 Días
@@ -287,8 +287,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               onClick={() => setTimeRange('30d')}
               className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
                 timeRange === '30d' 
-                  ? 'bg-[#00B074] text-white shadow-xs' 
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-[#0B192C] shadow-xs' 
+                  : 'text-slate-500 hover:text-[#0B192C]'
               }`}
             >
               30 Días
@@ -299,49 +299,47 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
       {/* 2. PRIMARY STATS HERO */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-1.5 shadow-md relative overflow-hidden">
-          <div className="w-20 h-20 rounded-full bg-cyan-500/5 absolute -right-6 -bottom-6 pointer-events-none" />
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1.5 shadow-xs relative overflow-hidden">
+          <div className="flex items-center justify-between text-slate-500 text-xs">
             <span className="font-semibold flex items-center gap-1">
-              <DollarSign className="w-3.5 h-3.5 text-cyan-400" /> Volumen Transado
+              <DollarSign className="w-3.5 h-3.5 text-blue-600" /> Volumen Transado
             </span>
-            <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.2 rounded">
+            <span className="text-[10px] font-mono text-[#008A5B] font-bold bg-[#E6F7F0] px-1.5 py-0.2 rounded border border-[#00B074]/30">
               +38.4%
             </span>
           </div>
-          <div className="text-lg font-black text-white font-mono tracking-tight">
-            ${(totalVolume / 1_000_000).toFixed(2)}M <span className="text-xs font-normal text-slate-400">USD</span>
+          <div className="text-lg font-black text-[#0B192C] font-mono tracking-tight">
+            ${(totalVolume / 1_000_000).toFixed(2)}M <span className="text-xs font-normal text-slate-500">USD</span>
           </div>
           <div className="text-[10px] text-slate-400 font-mono">
             {totalDeals} transacciones liquidadas
           </div>
         </div>
 
-        <div className="bg-slate-900/90 border border-emerald-900/40 rounded-2xl p-3.5 space-y-1.5 shadow-md relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-emerald-950/20">
-          <div className="w-20 h-20 rounded-full bg-[#00B074]/10 absolute -right-6 -bottom-6 pointer-events-none" />
-          <div className="flex items-center justify-between text-slate-400 text-xs">
+        <div className="bg-white border border-[#00B074]/30 rounded-2xl p-3.5 space-y-1.5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white to-[#E6F7F0]/30">
+          <div className="flex items-center justify-between text-slate-500 text-xs">
             <span className="font-semibold flex items-center gap-1">
               <PiggyBank className="w-3.5 h-3.5 text-[#00B074]" /> Ahorro Arbitraje
             </span>
-            <span className="text-[10px] font-mono text-[#00B074] font-bold bg-[#00B074]/15 px-1.5 py-0.2 rounded border border-[#00B074]/30">
+            <span className="text-[10px] font-mono text-[#008A5B] font-bold bg-[#E6F7F0] px-1.5 py-0.2 rounded border border-[#00B074]/40">
               {savingsRate}%
             </span>
           </div>
-          <div className="text-lg font-black text-[#00B074] font-mono tracking-tight">
-            ${(totalSavings / 1_000).toFixed(1)}k <span className="text-xs font-normal text-slate-400">USD</span>
+          <div className="text-lg font-black text-[#008A5B] font-mono tracking-tight">
+            ${(totalSavings / 1_000).toFixed(1)}k <span className="text-xs font-normal text-slate-500">USD</span>
           </div>
-          <div className="text-[10px] text-slate-400 font-mono">
+          <div className="text-[10px] text-slate-500 font-mono">
             Ganancia directa retenida
           </div>
         </div>
       </div>
 
       {/* 3. CHART 1: HISTORICAL TRADE VOLUME GROWTH (NATIVE SVG) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-cyan-400" />
+            <h4 className="text-xs font-bold text-[#0B192C] flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-blue-600" />
               Crecimiento de Volumen de Negociación
             </h4>
             <span className="text-[10px] text-slate-400 font-mono">
@@ -349,14 +347,14 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[10px] font-mono">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-[10px] font-mono">
             <button
               type="button"
               onClick={() => setVolumeViewType('cumulative')}
-              className={`px-2 py-0.5 rounded cursor-pointer ${
+              className={`px-2 py-0.5 rounded cursor-pointer font-bold transition-all ${
                 volumeViewType === 'cumulative' 
-                  ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40' 
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-[#0B192C] shadow-xs' 
+                  : 'text-slate-500 hover:text-[#0B192C]'
               }`}
             >
               Acumulado
@@ -364,10 +362,10 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
             <button
               type="button"
               onClick={() => setVolumeViewType('daily')}
-              className={`px-2 py-0.5 rounded cursor-pointer ${
+              className={`px-2 py-0.5 rounded cursor-pointer font-bold transition-all ${
                 volumeViewType === 'daily' 
-                  ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40' 
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-[#0B192C] shadow-xs' 
+                  : 'text-slate-500 hover:text-[#0B192C]'
               }`}
             >
               Diario
@@ -383,8 +381,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           >
             <defs>
               <linearGradient id="areaVolumeGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={volumeViewType === 'cumulative' ? '#06b6d4' : '#00B074'} stopOpacity="0.4" />
-                <stop offset="100%" stopColor={volumeViewType === 'cumulative' ? '#0B192C' : '#040911'} stopOpacity="0.0" />
+                <stop offset="0%" stopColor={volumeViewType === 'cumulative' ? '#0284c7' : '#00B074'} stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
               </linearGradient>
             </defs>
 
@@ -399,7 +397,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                     y1={y} 
                     x2={padL + plotW} 
                     y2={y} 
-                    stroke="#1E293B" 
+                    stroke="#E2E8F0" 
                     strokeDasharray="3 3"
                     strokeWidth="1"
                   />
@@ -407,7 +405,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                     x={padL - 4} 
                     y={y + 3} 
                     textAnchor="end" 
-                    fill="#64748B" 
+                    fill="#94A3B8" 
                     fontSize="9" 
                     fontFamily="monospace"
                   >
@@ -423,7 +421,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               y1={padT + plotH} 
               x2={padL + plotW} 
               y2={padT + plotH} 
-              stroke="#334155" 
+              stroke="#CBD5E1" 
               strokeWidth="1" 
             />
 
@@ -432,7 +430,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
             <path 
               d={linePath} 
               fill="none" 
-              stroke={volumeViewType === 'cumulative' ? '#06b6d4' : '#00B074'} 
+              stroke={volumeViewType === 'cumulative' ? '#0284c7' : '#00B074'} 
               strokeWidth="2.5" 
               strokeLinecap="round"
             />
@@ -455,8 +453,8 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                     cx={pt.x}
                     cy={pt.y}
                     r={isHov ? 5 : 2.5}
-                    fill={isHov ? '#ffffff' : (volumeViewType === 'cumulative' ? '#06b6d4' : '#00B074')}
-                    stroke={volumeViewType === 'cumulative' ? '#06b6d4' : '#00B074'}
+                    fill={isHov ? '#ffffff' : (volumeViewType === 'cumulative' ? '#0284c7' : '#00B074')}
+                    stroke={volumeViewType === 'cumulative' ? '#0284c7' : '#00B074'}
                     strokeWidth="2"
                   />
 
@@ -479,45 +477,45 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
           {/* Interactive Tooltip Card */}
           {hoveredVol && (
-            <div className="mt-2 bg-[#0B192C]/95 border border-slate-700 rounded-xl p-3 shadow-2xl text-xs space-y-1 backdrop-blur-md">
-              <div className="text-slate-400 font-mono text-[10px] pb-1 border-b border-slate-800 flex justify-between">
+            <div className="mt-2 bg-white border border-slate-200 rounded-xl p-3 shadow-lg text-xs space-y-1 text-[#0B192C]">
+              <div className="text-slate-500 font-mono text-[10px] pb-1 border-b border-slate-100 flex justify-between">
                 <span>{hoveredVol.date}</span>
-                <span className="text-[#00B074] font-bold">{hoveredVol.deals} lotes cerrados</span>
+                <span className="text-[#008A5B] font-bold">{hoveredVol.deals} lotes cerrados</span>
               </div>
-              <div className="flex justify-between items-center text-white font-mono pt-1">
-                <span className="text-slate-300">Volumen Diario:</span>
-                <span className="font-bold text-cyan-400">${hoveredVol.volume.toLocaleString()} USD</span>
+              <div className="flex justify-between items-center text-[#0B192C] font-mono pt-1">
+                <span className="text-slate-500">Volumen Diario:</span>
+                <span className="font-bold text-blue-700">${hoveredVol.volume.toLocaleString()} USD</span>
               </div>
-              <div className="flex justify-between items-center text-white font-mono">
-                <span className="text-slate-300">Acumulado 30D:</span>
-                <span className="font-bold text-[#00B074]">${hoveredVol.cumulativeVolume.toLocaleString()} USD</span>
+              <div className="flex justify-between items-center text-[#0B192C] font-mono">
+                <span className="text-slate-500">Acumulado 30D:</span>
+                <span className="font-bold text-[#008A5B]">${hoveredVol.cumulativeVolume.toLocaleString()} USD</span>
               </div>
-              <div className="flex justify-between items-center text-white font-mono pt-1 border-t border-slate-800/80">
-                <span className="text-emerald-350">Ahorro Arbitraje:</span>
-                <span className="font-bold text-emerald-400">+${hoveredVol.savings.toLocaleString()} USD</span>
+              <div className="flex justify-between items-center text-[#0B192C] font-mono pt-1 border-t border-slate-100">
+                <span className="text-emerald-700 font-semibold">Ahorro Arbitraje:</span>
+                <span className="font-bold text-[#008A5B]">+${hoveredVol.savings.toLocaleString()} USD</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Footnote */}
-        <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+        <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#00B074] animate-pulse" />
             <span>Pico más alto:</span>
-            <strong className="text-white">$268,950 USD (Hoy)</strong>
+            <strong className="text-[#0B192C]">$268,950 USD (Hoy)</strong>
           </div>
-          <div className="text-emerald-400 font-bold">
+          <div className="text-[#008A5B] font-bold">
             Promedio: ${(totalVolume / filteredData.length).toFixed(0)}/día
           </div>
         </div>
       </div>
 
       {/* 4. CHART 2: ARBITRAGE SAVINGS ACHIEVED (STACKED SVG BARS) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-[#0B192C] flex items-center gap-1.5">
               <PiggyBank className="w-4 h-4 text-[#00B074]" />
               Ahorro Total por Arbitraje en Lotes
             </h4>
@@ -526,21 +524,21 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
             </span>
           </div>
 
-          <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-[#00B074] border border-emerald-500/30 text-[10px] font-mono font-bold">
+          <span className="px-2 py-0.5 rounded bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30 text-[10px] font-mono font-bold">
             +${totalSavings.toLocaleString()} USD
           </span>
         </div>
 
         {/* Legend */}
         <div className="flex items-center justify-center gap-4 text-[10px] font-mono pt-1">
-          <span className="flex items-center gap-1 text-slate-300">
+          <span className="flex items-center gap-1 text-slate-600">
             <span className="w-2 h-2 rounded-full bg-[#00B074]" />  iPhone
           </span>
-          <span className="flex items-center gap-1 text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-cyan-400" /> Samsung
+          <span className="flex items-center gap-1 text-slate-600">
+            <span className="w-2 h-2 rounded-full bg-blue-600" /> Samsung
           </span>
-          <span className="flex items-center gap-1 text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-purple-400" /> MacBook
+          <span className="flex items-center gap-1 text-slate-600">
+            <span className="w-2 h-2 rounded-full bg-purple-600" /> MacBook
           </span>
         </div>
 
@@ -561,7 +559,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                     y1={y} 
                     x2={padL + plotW} 
                     y2={y} 
-                    stroke="#1E293B" 
+                    stroke="#E2E8F0" 
                     strokeDasharray="3 3"
                     strokeWidth="1"
                   />
@@ -569,7 +567,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                     x={padL - 4} 
                     y={y + 3} 
                     textAnchor="end" 
-                    fill="#64748B" 
+                    fill="#94A3B8" 
                     fontSize="9" 
                     fontFamily="monospace"
                   >
@@ -584,7 +582,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               y1={padT + plotH} 
               x2={padL + plotW} 
               y2={padT + plotH} 
-              stroke="#334155" 
+              stroke="#CBD5E1" 
               strokeWidth="1" 
             />
 
@@ -644,7 +642,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                     y={ySamsung}
                     width={barW}
                     height={Math.max(1, hSamsung)}
-                    fill="#06b6d4"
+                    fill="#2563eb"
                     rx="1"
                   />
                   {/* MacBook Bar */}
@@ -653,7 +651,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                     y={yMacBook}
                     width={barW}
                     height={Math.max(1, hMacBook)}
-                    fill="#a855f7"
+                    fill="#9333ea"
                     rx="2"
                   />
 
@@ -676,29 +674,29 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
           {/* Interactive Tooltip Card */}
           {hoveredSav && (
-            <div className="mt-2 bg-[#0B192C]/95 border border-slate-700 rounded-xl p-3 shadow-2xl text-xs space-y-1.5 backdrop-blur-md">
-              <div className="text-slate-400 font-mono text-[10px] pb-1 border-b border-slate-800 flex justify-between">
+            <div className="mt-2 bg-white border border-slate-200 rounded-xl p-3 shadow-lg text-xs space-y-1.5 text-[#0B192C]">
+              <div className="text-slate-500 font-mono text-[10px] pb-1 border-b border-slate-100 flex justify-between">
                 <span>{hoveredSav.date}</span>
-                <span className="text-[#00B074] font-bold">Total: +${hoveredSav.savings.toLocaleString()} USD</span>
+                <span className="text-[#008A5B] font-bold">Total: +${hoveredSav.savings.toLocaleString()} USD</span>
               </div>
               <div className="space-y-1 font-mono text-[11px] pt-1">
-                <div className="flex justify-between text-slate-200">
+                <div className="flex justify-between text-slate-700">
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-[#00B074]" />  iPhone / iPad:
                   </span>
-                  <span className="font-bold text-[#00B074]">${hoveredSav.appleSavings.toLocaleString()}</span>
+                  <span className="font-bold text-[#008A5B]">${hoveredSav.appleSavings.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-slate-200">
+                <div className="flex justify-between text-slate-700">
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400" /> Samsung Galaxy:
+                    <span className="w-2 h-2 rounded-full bg-blue-600" /> Samsung Galaxy:
                   </span>
-                  <span className="font-bold text-cyan-400">${hoveredSav.samsungSavings.toLocaleString()}</span>
+                  <span className="font-bold text-blue-700">${hoveredSav.samsungSavings.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-slate-200">
+                <div className="flex justify-between text-slate-700">
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-purple-400" /> MacBooks M-Series:
+                    <span className="w-2 h-2 rounded-full bg-purple-600" /> MacBooks M-Series:
                   </span>
-                  <span className="font-bold text-purple-400">${hoveredSav.macbookSavings.toLocaleString()}</span>
+                  <span className="font-bold text-purple-700">${hoveredSav.macbookSavings.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -707,32 +705,32 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
         {/* Category Contribution Badges */}
         <div className="grid grid-cols-3 gap-2 pt-1 font-mono text-[10px]">
-          <div className="bg-slate-950 p-2 rounded-xl border border-slate-800 space-y-0.5 text-center">
-            <span className="text-slate-400 block"> Apple</span>
-            <span className="text-[#00B074] font-bold block">${(totalAppleSavings / 1000).toFixed(1)}k</span>
-            <span className="text-[9px] text-slate-500 font-medium">({((totalAppleSavings / totalSavings) * 100).toFixed(0)}%)</span>
+          <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 space-y-0.5 text-center">
+            <span className="text-slate-500 block"> Apple</span>
+            <span className="text-[#008A5B] font-bold block">${(totalAppleSavings / 1000).toFixed(1)}k</span>
+            <span className="text-[9px] text-slate-400 font-medium">({((totalAppleSavings / totalSavings) * 100).toFixed(0)}%)</span>
           </div>
 
-          <div className="bg-slate-950 p-2 rounded-xl border border-slate-800 space-y-0.5 text-center">
-            <span className="text-slate-400 block">Samsung</span>
-            <span className="text-cyan-400 font-bold block">${(totalSamsungSavings / 1000).toFixed(1)}k</span>
-            <span className="text-[9px] text-slate-500 font-medium">({((totalSamsungSavings / totalSavings) * 100).toFixed(0)}%)</span>
+          <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 space-y-0.5 text-center">
+            <span className="text-slate-500 block">Samsung</span>
+            <span className="text-blue-700 font-bold block">${(totalSamsungSavings / 1000).toFixed(1)}k</span>
+            <span className="text-[9px] text-slate-400 font-medium">({((totalSamsungSavings / totalSavings) * 100).toFixed(0)}%)</span>
           </div>
 
-          <div className="bg-slate-950 p-2 rounded-xl border border-slate-800 space-y-0.5 text-center">
-            <span className="text-slate-400 block">MacBook</span>
-            <span className="text-purple-400 font-bold block">${(totalMacBookSavings / 1000).toFixed(1)}k</span>
-            <span className="text-[9px] text-slate-500 font-medium">({((totalMacBookSavings / totalSavings) * 100).toFixed(0)}%)</span>
+          <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 space-y-0.5 text-center">
+            <span className="text-slate-500 block">MacBook</span>
+            <span className="text-purple-700 font-bold block">${(totalMacBookSavings / 1000).toFixed(1)}k</span>
+            <span className="text-[9px] text-slate-400 font-medium">({((totalMacBookSavings / totalSavings) * 100).toFixed(0)}%)</span>
           </div>
         </div>
       </div>
 
       {/* 5. TOP ARBITRAGE LIQUIDATIONS LOG */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Award className="w-4 h-4 text-amber-400" />
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+            <Award className="w-4 h-4 text-amber-500" />
+            <h4 className="text-xs font-bold text-[#0B192C] uppercase tracking-wider">
               Mayores Casos de Éxito en Arbitraje
             </h4>
           </div>
@@ -743,26 +741,26 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           {ARBITRAGE_HIGHLIGHTS.map((arb) => (
             <div 
               key={arb.id}
-              className="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors space-y-1.5"
+              className="p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-colors space-y-1.5"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                <span className="text-xs font-bold text-[#0B192C] flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#00B074]" />
                   {arb.model}
                 </span>
-                <span className="text-xs font-mono font-bold text-[#00B074]">
+                <span className="text-xs font-mono font-bold text-[#008A5B]">
                   +${arb.grossSaving.toLocaleString()} USD
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
                 <span>{arb.qty} unidades · {arb.hubBuy} ➔ {arb.hubSell}</span>
-                <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.2 rounded">
+                <span className="text-[#008A5B] font-bold bg-[#E6F7F0] px-1.5 py-0.2 rounded border border-[#00B074]/30">
                   +{arb.roiPct}% Spread
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono border-t border-slate-900 pt-1">
+              <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono border-t border-slate-200/80 pt-1">
                 <span>Comprado: ${arb.buyPrice} USD | Liquidado: ${arb.sellPrice} USD</span>
                 <span>{arb.date}</span>
               </div>
@@ -773,10 +771,10 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         <button
           type="button"
           onClick={onOpenFeed}
-          className="w-full py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-cyan-400 border border-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl bg-[#E6F7F0] hover:bg-[#d5f2e5] text-[#008A5B] border border-[#00B074]/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
         >
           <span>Explorar Lotes Actuales en Piso Mayorista</span>
-          <ArrowUpRight className="w-3.5 h-3.5" />
+          <ArrowUpRight className="w-3.5 h-3.5 text-[#008A5B]" />
         </button>
       </div>
     </div>

@@ -367,10 +367,10 @@ export const VoiceSearchBar: React.FC<VoiceSearchBarProps> = ({
             placeholder={isListening ? 'Escuchando tu voz...' : placeholder}
             value={isListening && interimText ? interimText : searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className={`w-full pl-9 pr-16 py-2 bg-slate-900 border rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none transition-colors ${
+            className={`w-full pl-9 pr-16 py-2.5 bg-white border rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-colors shadow-xs ${
               isListening 
-                ? 'border-emerald-500 bg-slate-900/90' 
-                : 'border-slate-800 focus:border-cyan-500'
+                ? 'border-emerald-500 ring-2 ring-emerald-500/20' 
+                : 'border-slate-200 focus:border-[#00B074]'
             }`}
           />
 
@@ -380,7 +380,7 @@ export const VoiceSearchBar: React.FC<VoiceSearchBarProps> = ({
               <button
                 type="button"
                 onClick={() => onSearchChange('')}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                 title="Limpiar búsqueda"
               >
                 <X className="w-3.5 h-3.5" />
@@ -393,8 +393,8 @@ export const VoiceSearchBar: React.FC<VoiceSearchBarProps> = ({
               onClick={isListening ? stopListening : startListening}
               className={`relative p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 isListening
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/40 shadow-sm shadow-red-500/40'
-                  : 'bg-slate-800/80 hover:bg-[#00B074]/20 text-slate-300 hover:text-[#00B074] border border-slate-700/60'
+                  ? 'bg-red-50 text-red-600 border border-red-200 shadow-xs'
+                  : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-[#00B074] border border-slate-200'
               }`}
               title={isListening ? 'Detener escucha' : 'Búsqueda por voz (Ej: "Buscar iPhone 16")'}
               aria-label="Búsqueda por voz"
@@ -403,11 +403,11 @@ export const VoiceSearchBar: React.FC<VoiceSearchBarProps> = ({
                 <div className="flex items-center gap-1">
                   {/* Waveform Equalizer Animation */}
                   <span className="flex items-center gap-0.5 h-3 px-0.5">
-                    <span className="w-0.5 h-2 bg-red-400 rounded-full animate-bounce" style={{ animationDuration: '400ms' }} />
-                    <span className="w-0.5 h-3 bg-red-400 rounded-full animate-bounce" style={{ animationDuration: '600ms', animationDelay: '100ms' }} />
-                    <span className="w-0.5 h-1.5 bg-red-400 rounded-full animate-bounce" style={{ animationDuration: '500ms', animationDelay: '200ms' }} />
+                    <span className="w-0.5 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDuration: '400ms' }} />
+                    <span className="w-0.5 h-3 bg-red-500 rounded-full animate-bounce" style={{ animationDuration: '600ms', animationDelay: '100ms' }} />
+                    <span className="w-0.5 h-1.5 bg-red-500 rounded-full animate-bounce" style={{ animationDuration: '500ms', animationDelay: '200ms' }} />
                   </span>
-                  <MicOff className="w-3.5 h-3.5 text-red-400" />
+                  <MicOff className="w-3.5 h-3.5 text-red-500" />
                 </div>
               ) : (
                 <Mic className="w-3.5 h-3.5" />
@@ -428,7 +428,7 @@ export const VoiceSearchBar: React.FC<VoiceSearchBarProps> = ({
         <button
           type="button"
           onClick={onFilterModalToggle}
-          className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-slate-700 transition-colors"
+          className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-xs"
           title="Filtros avanzados"
         >
           <Volume2 className="w-4 h-4 hidden" />

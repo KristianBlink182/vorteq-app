@@ -48,7 +48,7 @@ const INITIAL_ALERTS: PriceAlert[] = [
     condition: 'below_target',
     notifyEmail: true,
     notifyPush: true,
-    emailAddress: 'admin@vorteqb2b.com',
+    emailAddress: 'alerts@vorteqb2b.com',
     isActive: true,
     createdAt: '14 Oct 2026',
     lastTriggered: 'Hoy a las 11:20 AM'
@@ -62,7 +62,7 @@ const INITIAL_ALERTS: PriceAlert[] = [
     percentDrop: 2.5,
     notifyEmail: true,
     notifyPush: true,
-    emailAddress: 'admin@vorteqb2b.com',
+    emailAddress: 'alerts@vorteqb2b.com',
     isActive: true,
     createdAt: '12 Oct 2026'
   },
@@ -74,7 +74,7 @@ const INITIAL_ALERTS: PriceAlert[] = [
     condition: 'below_target',
     notifyEmail: false,
     notifyPush: true,
-    emailAddress: 'admin@vorteqb2b.com',
+    emailAddress: 'alerts@vorteqb2b.com',
     isActive: true,
     createdAt: '10 Oct 2026'
   }
@@ -205,31 +205,31 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-xl">
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-4 shadow-xs text-[#0B192C]">
       {/* Simulation banner */}
       {activeSimulation && (
-        <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950 via-[#0B192C] to-slate-900 border border-[#00B074]/60 text-white shadow-2xl animate-bounce-short relative">
+        <div className="p-3.5 rounded-xl bg-[#E6F7F0] border border-[#00B074]/50 text-[#0B192C] shadow-lg animate-bounce-short relative">
           <button 
             onClick={() => setActiveSimulation(null)}
-            className="absolute top-2 right-2 text-slate-400 hover:text-white"
+            className="absolute top-2 right-2 text-slate-400 hover:text-slate-700 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
           <div className="flex items-start gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#00B074] text-white flex items-center justify-center shrink-0 shadow-md">
-              <Bell className="w-4 h-4 animate-spin-slow" />
+            <div className="w-8 h-8 rounded-lg bg-[#00B074] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Bell className="w-4 h-4" />
             </div>
             <div className="space-y-1 pr-4">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-[#00B074] uppercase border border-emerald-500/30">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-[#008A5B] uppercase border border-[#00B074]/30 shadow-2xs">
                   {activeSimulation.channel === 'push' ? '📲 Alerta Push Recibida' : '📧 Correo Enviado'}
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono">Ahora mismo</span>
+                <span className="text-[10px] text-slate-500 font-mono font-medium">Ahora mismo</span>
               </div>
-              <p className="text-xs font-semibold text-slate-100 leading-snug">
+              <p className="text-xs font-bold text-[#0B192C] leading-snug">
                 {activeSimulation.message}
               </p>
-              <div className="text-[11px] text-emerald-400 font-mono font-bold flex items-center gap-1">
+              <div className="text-[11px] text-[#008A5B] font-mono font-bold flex items-center gap-1">
                 <TrendingDown className="w-3.5 h-3.5" />
                 Descuento del {activeSimulation.dropPct}% vs precio objetivo
               </div>
@@ -241,17 +241,17 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-[#00B074]/15 border border-[#00B074]/30 text-[#00B074] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-[#E6F7F0] border border-[#00B074]/30 text-[#008A5B] flex items-center justify-center">
             <Bell className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-[#0B192C] uppercase tracking-wider flex items-center gap-1.5">
               Alertas de Precio en Vivo
-              <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40 font-mono">
+              <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/40 font-mono font-bold">
                 {alerts.filter(a => a.isActive).length} Activas
               </span>
             </h4>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-500 font-medium">
               Notificaciones instantáneas por Push o Email para iPhone, Samsung y MacBooks.
             </p>
           </div>
@@ -259,7 +259,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
 
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#00B074] hover:bg-[#009b66] text-white text-xs font-bold transition-all shadow-md cursor-pointer shrink-0"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#00B074] hover:bg-[#009b66] text-white text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
         >
           {isAdding ? <ChevronUp className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
           <span>{isAdding ? 'Cerrar' : 'Nueva'}</span>
@@ -268,18 +268,18 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
 
       {/* New Alert Form */}
       {isAdding && (
-        <form onSubmit={handleCreateAlert} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3.5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
+        <form onSubmit={handleCreateAlert} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3.5">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span className="text-xs font-bold text-[#0B192C] flex items-center gap-1.5">
               <Sliders className="w-3.5 h-3.5 text-[#00B074]" />
               Configurar Nueva Regla de Alerta
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">Spot Market Trigger</span>
+            <span className="text-[10px] text-slate-500 font-mono font-semibold">Spot Market Trigger</span>
           </div>
 
           {/* 1. Brand Selector */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+            <label className="text-[11px] font-semibold text-slate-700 block mb-1">
               1. Selecciona la Marca
             </label>
             <div className="grid grid-cols-3 gap-1.5">
@@ -290,8 +290,8 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                   onClick={() => handleBrandChange(brand)}
                   className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-colors cursor-pointer border ${
                     selectedBrand === brand
-                      ? 'bg-[#00B074]/20 text-[#00B074] border-[#00B074]/50 shadow-xs'
-                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                      ? 'bg-white text-[#008A5B] border-[#00B074] shadow-xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:text-[#0B192C]'
                   }`}
                 >
                   {brand === 'Apple' ? ' iPhone' : brand === 'Samsung' ? 'Samsung' : '💻 MacBook'}
@@ -302,13 +302,13 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
 
           {/* 2. Specific Model Selector */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+            <label className="text-[11px] font-semibold text-slate-700 block mb-1">
               2. Modelo Específico
             </label>
             <select
               value={selectedModel}
               onChange={(e) => handleModelChange(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#00B074]"
+              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] focus:outline-none focus:border-[#00B074]"
             >
               {AVAILABLE_MODELS.filter(m => m.brand === selectedBrand).map(m => {
                 const live = getLivePrice(m.model);
@@ -324,13 +324,13 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
           {/* 3. Trigger Condition & Target */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+              <label className="text-[11px] font-semibold text-slate-700 block mb-1">
                 3. Condición de Disparo
               </label>
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value as any)}
-                className="w-full px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#00B074]"
+                className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] focus:outline-none focus:border-[#00B074]"
               >
                 <option value="below_target">Precio cae debajo de ($)</option>
                 <option value="percent_drop">Baja más de (%) en 24h</option>
@@ -339,7 +339,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+              <label className="text-[11px] font-semibold text-slate-700 block mb-1">
                 {condition === 'percent_drop' ? 'Porcentaje de caída' : 'Precio Objetivo ($ USD)'}
               </label>
               <div className="relative">
@@ -352,7 +352,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                       max="30"
                       value={percentDrop}
                       onChange={(e) => setPercentDrop(Number(e.target.value))}
-                      className="w-full pl-3 pr-8 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-[#00B074]"
+                      className="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] font-mono focus:outline-none focus:border-[#00B074]"
                     />
                     <span className="absolute right-3 text-xs text-slate-400 font-mono">%</span>
                   </div>
@@ -363,7 +363,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                       type="number"
                       value={targetPrice}
                       onChange={(e) => setTargetPrice(Number(e.target.value))}
-                      className="w-full pl-7 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-[#00B074]"
+                      className="w-full pl-7 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] font-mono focus:outline-none focus:border-[#00B074]"
                     />
                   </div>
                 )}
@@ -372,8 +372,8 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
           </div>
 
           {/* 4. Notification Channels (Push & Email) */}
-          <div className="space-y-2 pt-1 border-t border-slate-800/80">
-            <label className="text-[11px] font-semibold text-slate-300 block">
+          <div className="space-y-2 pt-1 border-t border-slate-200">
+            <label className="text-[11px] font-semibold text-slate-700 block">
               4. Canales de Notificación
             </label>
 
@@ -383,19 +383,19 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                 onClick={() => setNotifyPush(!notifyPush)}
                 className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${
                   notifyPush 
-                    ? 'bg-[#00B074]/15 border-[#00B074]/40 text-white' 
-                    : 'bg-slate-900 border-slate-800 text-slate-400'
+                    ? 'bg-[#E6F7F0] border-[#00B074]/50 text-[#0B192C]' 
+                    : 'bg-white border-slate-200 text-slate-500'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <Smartphone className="w-4 h-4 text-[#00B074]" />
                   <div>
-                    <div className="text-xs font-bold">Push Móvil</div>
-                    <div className="text-[10px] text-slate-400">Al instante</div>
+                    <div className="text-xs font-bold text-[#0B192C]">Push Móvil</div>
+                    <div className="text-[10px] text-slate-500">Al instante</div>
                   </div>
                 </div>
                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                  notifyPush ? 'bg-[#00B074] border-[#00B074] text-white' : 'border-slate-600'
+                  notifyPush ? 'bg-[#00B074] border-[#00B074] text-white' : 'border-slate-300'
                 }`}>
                   {notifyPush && <CheckCircle2 className="w-3.5 h-3.5" />}
                 </div>
@@ -406,19 +406,19 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                 onClick={() => setNotifyEmail(!notifyEmail)}
                 className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${
                   notifyEmail 
-                    ? 'bg-[#00B074]/15 border-[#00B074]/40 text-white' 
-                    : 'bg-slate-900 border-slate-800 text-slate-400'
+                    ? 'bg-[#E6F7F0] border-[#00B074]/50 text-[#0B192C]' 
+                    : 'bg-white border-slate-200 text-slate-500'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-cyan-400" />
+                  <Mail className="w-4 h-4 text-blue-600" />
                   <div>
-                    <div className="text-xs font-bold">Email B2B</div>
-                    <div className="text-[10px] text-slate-400">Resumen detallado</div>
+                    <div className="text-xs font-bold text-[#0B192C]">Email B2B</div>
+                    <div className="text-[10px] text-slate-500">Resumen detallado</div>
                   </div>
                 </div>
                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                  notifyEmail ? 'bg-[#00B074] border-[#00B074] text-white' : 'border-slate-600'
+                  notifyEmail ? 'bg-[#00B074] border-[#00B074] text-white' : 'border-slate-300'
                 }`}>
                   {notifyEmail && <CheckCircle2 className="w-3.5 h-3.5" />}
                 </div>
@@ -432,7 +432,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                   value={emailAddress}
                   onChange={(e) => setEmailAddress(e.target.value)}
                   placeholder="tu-correo@empresa.com"
-                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-[#00B074]"
+                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-[#0B192C] placeholder-slate-400 font-mono focus:outline-none focus:border-[#00B074]"
                 />
               </div>
             )}
@@ -442,13 +442,13 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
             <button
               type="button"
               onClick={() => setIsAdding(false)}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium"
+              className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-medium cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 bg-[#00B074] hover:bg-[#009b66] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md"
+              className="px-4 py-1.5 bg-[#00B074] hover:bg-[#009b66] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               Guardar Alerta
@@ -460,11 +460,11 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
       {/* Active Alerts List */}
       <div className="space-y-2.5">
         {alerts.length === 0 ? (
-          <div className="p-4 rounded-xl bg-slate-950/60 border border-dashed border-slate-800 text-center space-y-1">
-            <p className="text-xs text-slate-400">No tienes alertas de precio configuradas.</p>
+          <div className="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-center space-y-1">
+            <p className="text-xs text-slate-500">No tienes alertas de precio configuradas.</p>
             <button
               onClick={() => setIsAdding(true)}
-              className="text-xs text-[#00B074] font-bold hover:underline"
+              className="text-xs text-[#008A5B] font-bold hover:underline cursor-pointer"
             >
               + Crear tu primera alerta para iPhone, Samsung o MacBook
             </button>
@@ -479,8 +479,8 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                 key={item.id}
                 className={`p-3 rounded-xl border transition-all ${
                   item.isActive 
-                    ? 'bg-slate-950/90 border-slate-800 hover:border-slate-700' 
-                    : 'bg-slate-950/40 border-slate-900 opacity-60'
+                    ? 'bg-slate-50 border-slate-200 hover:border-slate-300' 
+                    : 'bg-slate-50/50 border-slate-200 opacity-60'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -488,30 +488,30 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded font-mono ${
                         item.brand === 'Apple' 
-                          ? 'bg-slate-800 text-slate-200' 
+                          ? 'bg-slate-200 text-slate-800' 
                           : item.brand === 'Samsung' 
-                          ? 'bg-blue-950 text-blue-300 border border-blue-800' 
-                          : 'bg-purple-950 text-purple-300 border border-purple-800'
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'bg-purple-100 text-purple-800 border border-purple-200'
                       }`}>
                         {item.brand}
                       </span>
-                      <h5 className="text-xs font-bold text-white truncate max-w-[200px]">
+                      <h5 className="text-xs font-bold text-[#0B192C] truncate max-w-[200px]">
                         {item.model}
                       </h5>
                     </div>
 
                     {/* Condition details */}
-                    <div className="text-[11px] text-slate-300 flex items-center gap-2 flex-wrap font-mono">
+                    <div className="text-[11px] text-slate-600 flex items-center gap-2 flex-wrap font-mono">
                       <span>
-                        Objetivo: <strong className="text-[#00B074]">${item.targetPriceUSD.toLocaleString()} USD</strong>
+                        Objetivo: <strong className="text-[#008A5B]">${item.targetPriceUSD.toLocaleString()} USD</strong>
                       </span>
                       {livePrice && (
                         <span className="text-slate-400">
-                          (Spot actual: <span className="text-white">${livePrice}</span>)
+                          (Spot actual: <span className="text-[#0B192C] font-semibold">${livePrice}</span>)
                         </span>
                       )}
                       {item.percentDrop && (
-                        <span className="text-amber-400 font-semibold">
+                        <span className="text-amber-600 font-semibold">
                           (-{item.percentDrop}% en 24h)
                         </span>
                       )}
@@ -519,21 +519,21 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
 
                     {/* Channels and status badges */}
                     <div className="flex items-center gap-2 pt-1">
-                      <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                      <div className="flex items-center gap-1 text-[10px] text-slate-500">
                         {item.notifyPush && (
-                          <span className="flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                          <span className="flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-white border border-slate-200 text-slate-700 font-medium">
                             <Smartphone className="w-3 h-3 text-[#00B074]" /> Push
                           </span>
                         )}
                         {item.notifyEmail && (
-                          <span className="flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800 text-slate-300 truncate max-w-[140px]" title={item.emailAddress}>
-                            <Mail className="w-3 h-3 text-cyan-400" /> {item.emailAddress.split('@')[0]}
+                          <span className="flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-white border border-slate-200 text-slate-700 truncate max-w-[140px] font-medium" title={item.emailAddress}>
+                            <Mail className="w-3 h-3 text-blue-600" /> {item.emailAddress.split('@')[0]}
                           </span>
                         )}
                       </div>
 
                       {item.lastTriggered && (
-                        <span className="text-[9px] text-emerald-400 font-mono">
+                        <span className="text-[9px] text-[#008A5B] font-mono font-semibold">
                           ✓ Activada {item.lastTriggered}
                         </span>
                       )}
@@ -547,7 +547,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                       type="button"
                       title="Simular disparo de alerta en vivo"
                       onClick={() => triggerTestSimulation(item)}
-                      className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-[#00B074]/20 border border-slate-800 hover:border-[#00B074]/40 text-slate-300 hover:text-[#00B074] text-[10px] font-bold flex items-center gap-1 transition-colors"
+                      className="px-2 py-1 rounded-lg bg-white hover:bg-[#E6F7F0] border border-slate-200 hover:border-[#00B074]/40 text-slate-700 hover:text-[#008A5B] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                     >
                       <Sparkles className="w-3 h-3 text-[#00B074]" />
                       <span>Probar</span>
@@ -560,10 +560,10 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                       aria-checked={item.isActive}
                       onClick={() => toggleAlertStatus(item.id)}
                       className={`w-9 h-5 rounded-full transition-colors relative p-0.5 cursor-pointer ${
-                        item.isActive ? 'bg-[#00B074]' : 'bg-slate-800'
+                        item.isActive ? 'bg-[#00B074]' : 'bg-slate-300'
                       }`}
                     >
-                      <span className={`block w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${
+                      <span className={`block w-4 h-4 rounded-full bg-white shadow-xs transform transition-transform ${
                         item.isActive ? 'translate-x-4' : 'translate-x-0'
                       }`} />
                     </button>
@@ -571,7 +571,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                     {/* Delete button */}
                     <button
                       onClick={() => deleteAlert(item.id)}
-                      className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+                      className="p-1 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
                       title="Eliminar alerta"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -580,9 +580,9 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
                 </div>
 
                 {isNearTarget && item.isActive && (
-                  <div className="mt-2 pt-2 border-t border-slate-850 flex items-center justify-between text-[10px] text-amber-300 bg-amber-500/10 px-2 py-1 rounded-lg font-mono">
+                  <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg font-mono">
                     <span className="flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
                       ¡Precio spot a sólo ${(livePrice! - item.targetPriceUSD)} de tu umbral!
                     </span>
                     <span className="font-bold">Monitoreando</span>
@@ -595,8 +595,8 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
       </div>
 
       {/* Preset Fast Actions */}
-      <div className="pt-1 border-t border-slate-800/80">
-        <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5 tracking-wider">
+      <div className="pt-1 border-t border-slate-100">
+        <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1.5 tracking-wider">
           Plantillas Rápidas B2B (1 Clic)
         </span>
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
@@ -607,7 +607,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
               setTargetPrice(1020);
               setIsAdding(true);
             }}
-            className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 hover:border-[#00B074]/40 text-slate-300 text-[10px] font-mono whitespace-nowrap cursor-pointer transition-colors"
+            className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 hover:border-[#00B074]/50 text-slate-700 hover:text-[#008A5B] text-[10px] font-mono whitespace-nowrap cursor-pointer transition-colors"
           >
              iPhone 16 Pro Max &lt; $1,020
           </button>
@@ -618,7 +618,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
               setTargetPrice(860);
               setIsAdding(true);
             }}
-            className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 hover:border-[#00B074]/40 text-slate-300 text-[10px] font-mono whitespace-nowrap cursor-pointer transition-colors"
+            className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 hover:border-[#00B074]/50 text-slate-700 hover:text-[#008A5B] text-[10px] font-mono whitespace-nowrap cursor-pointer transition-colors"
           >
             Samsung S24 Ultra &lt; $860
           </button>
@@ -629,7 +629,7 @@ export const PriceAlertsSection: React.FC<PriceAlertsSectionProps> = ({
               setTargetPrice(1720);
               setIsAdding(true);
             }}
-            className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 hover:border-[#00B074]/40 text-slate-300 text-[10px] font-mono whitespace-nowrap cursor-pointer transition-colors"
+            className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 hover:border-[#00B074]/50 text-slate-700 hover:text-[#008A5B] text-[10px] font-mono whitespace-nowrap cursor-pointer transition-colors"
           >
             💻 MacBook Pro M3 &lt; $1,720
           </button>

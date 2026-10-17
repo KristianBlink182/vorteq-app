@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { MobileApp } from './components/mobile/MobileApp';
-import { WebAppDashboard } from './components/web/WebAppDashboard';
 import { AuthModal } from './components/auth/AuthModal';
 import { AuthScreen } from './components/auth/AuthScreen';
-import { AdminPanel } from './components/admin/AdminPanel';
 import { CreateOfferModal } from './components/mobile/CreateOfferModal';
 import { SplashScreen } from './components/mobile/SplashScreen';
 import { 
@@ -17,50 +15,59 @@ import {
 import { 
   UserAccount, 
   TradeOffer, 
-  ProductPriceLive, 
-  AppViewMode 
+  ProductPriceLive 
 } from './types';
 import { Check } from 'lucide-react';
 
 export default function App() {
+  // 4-second Splash Screen state
   const [showSplash, setShowSplash] = useState<boolean>(true);
+
+  // Authentication state (persisted in localStorage)
   const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() => getIsAuthenticated());
+
+  // Load shared database
   const [db] = useState(() => getDatabase());
   const [currentUser, setCurrentUserState] = useState<UserAccount>(db.currentUser);
   const [users, setUsersState] = useState<UserAccount[]>(db.users);
   const [offers, setOffersState] = useState<TradeOffer[]>(db.offers);
   const [livePrices] = useState<ProductPriceLive[]>(db.prices);
-  const [viewMode, setViewMode] = useState<AppViewMode>('mobile');
 
+  // Modals
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
   const [bannerToast, setBannerToast] = useState<string | null>(null);
 
+  // Sync users to storage
   const handleUsersUpdate = (newUsers: UserAccount[]) => {
     setUsersState(newUsers);
     saveUsers(newUsers);
   };
 
+  // Sync offers to storage
   const handleOffersUpdate = (newOffers: TradeOffer[]) => {
     setOffersState(newOffers);
     saveOffers(newOffers);
   };
 
+  // User registration / login callback
   const handleLoginSuccess = (user: UserAccount) => {
     setCurrentUserState(user);
     setCurrentUser(user);
     setIsAuthenticated(true);
     setIsAuthenticatedState(true);
     setIsAuthModalOpen(false);
+
     if (!users.some((u) => u.id === user.id)) {
       handleUsersUpdate([user, ...users]);
     }
-    const roleLabel = user.accountType === 'vendor' ? 'VENDOR' : 'CUSTOMER';
+
+    const roleLabel = user.accountType === 'vendor' ? 'VENDOR (Proveedor)' : 'CUSTOMER (Comprador)';
     setBannerToast(`¡Bienvenido! Sesión activa como ${user.fullName} [${roleLabel}]`);
     setTimeout(() => setBannerToast(null), 3500);
   };
 
+  // Logout callback
   const handleLogout = () => {
     setIsAuthenticated(false);
     setIsAuthenticatedState(false);
@@ -68,49 +75,58 @@ export default function App() {
     setTimeout(() => setBannerToast(null), 3000);
   };
 
-  const handleVerifyUser = (userId: string) => {
-    const updated = users.map((u) => u.id === userId ? { ...u, verifiedStatus: u.verifiedStatus === 'verified' ? ('pending' as const) : ('verified' as const) } : u);
-    handleUsersUpdate(updated);
-  };
-
-  const handleToggleUserRole = (userId: string) => {
-    const updated = users.map((u) => u.id === userId ? { ...u, role: u.role === 'admin' ? ('trader' as const) : ('admin' as const) } : u);
-    handleUsersUpdate(updated);
-  };
-
-  const handleDeleteOffer = (offerId: string) => {
-    const updated = offers.filter((o) => o.id !== offerId);
-    handleOffersUpdate(updated);
-  };
-
+  // User posts new offer
   const handleCreateOfferSubmit = (newOffer: TradeOffer) => {
-    handleOffersUpdate([newOffer, ...offers]);
-    handleUsersUpdate(users.map((u) => u.id === currentUser.id ? { ...u, offersCount: u.offersCount + 1 } : u));
-    setBannerToast('¡Oferta publicada exitosamente!');
+    const updated = [newOffer, ...offers];
+    handleOffersUpdate(updated);
+
+    const updatedUsers = users.map((u) => {
+      if (u.id === currentUser.id) {
+        return { ...u, offersCount: u.offersCount + 1 };
+      }
+      return u;
+    });
+    handleUsersUpdate(updatedUsers);
+
+    setBannerToast('¡Oferta publicada exitosamente en el piso en vivo!');
     setTimeout(() => setBannerToast(null), 3000);
   };
 
+  // Toggle save offer
   const handleSaveOfferToggle = (offerId: string) => {
-    handleOffersUpdate(offers.map((o) => o.id === offerId ? { ...o, isSaved: !o.isSaved } : o));
+    const updated = offers.map((o) => {
+      if (o.id === offerId) {
+        return { ...o, isSaved: !o.isSaved };
+      }
+      return o;
+    });
+    handleOffersUpdate(updated);
   };
 
+  // Toggle ignore offer
   const handleIgnoreOfferToggle = (offerId: string) => {
-    handleOffersUpdate(offers.filter((o) => o.id !== offerId));
+    const updated = offers.filter((o) => o.id !== offerId);
+    handleOffersUpdate(updated);
     setBannerToast('Oferta oculta de tu feed');
     setTimeout(() => setBannerToast(null), 2500);
   };
 
+  // Update privacy settings
   const handleUpdatePrivacy = (hidePhone: boolean, hideArchived: boolean) => {
     const updatedUser = { ...currentUser, hidePhone, hideArchived };
     setCurrentUserState(updatedUser);
     setCurrentUser(updatedUser);
-    handleUsersUpdate(users.map((u) => u.id === currentUser.id ? updatedUser : u));
-    setBannerToast('Privacidad guardada');
+
+    const updatedUsers = users.map((u) => (u.id === currentUser.id ? updatedUser : u));
+    handleUsersUpdate(updatedUsers);
+
+    setBannerToast('Configuración de privacidad guardada correctamente');
     setTimeout(() => setBannerToast(null), 3000);
   };
 
   return (
-    <div className="w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#070B14] flex flex-col font-sans text-slate-100">
+    <div className="w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#F8FAFC] flex flex-col font-sans text-slate-900">
+      {/* 4-Second Splash Screen Overlay */}
       {showSplash && (
         <SplashScreen 
           durationSeconds={4} 
@@ -118,64 +134,40 @@ export default function App() {
         />
       )}
 
+      {/* Toast Notification */}
       {bannerToast && (
-        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-cyan-300 text-xs font-semibold px-4 py-2 rounded-full shadow-2xl border border-cyan-800/80 flex items-center gap-2">
-          <Check className="w-4 h-4 text-emerald-400" />
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 bg-white text-[#0B192C] text-xs font-bold px-4 py-2.5 rounded-full shadow-xl border border-slate-200 flex items-center gap-2 animate-bounce">
+          <Check className="w-4 h-4 text-[#00B074]" />
           <span>{bannerToast}</span>
         </div>
       )}
 
+      {/* Flow check: If Splash finished and user NOT authenticated, render AuthScreen */}
       {!showSplash && !isAuthenticated ? (
         <AuthScreen
           availableUsers={users}
           onLoginSuccess={handleLoginSuccess}
         />
       ) : (
-        <>
-          {isAdminPanelOpen ? (
-            <AdminPanel
-              users={users}
-              offers={offers}
-              onVerifyUser={handleVerifyUser}
-              onToggleUserRole={handleToggleUserRole}
-              onDeleteOffer={handleDeleteOffer}
-              onClose={() => setIsAdminPanelOpen(false)}
-            />
-          ) : viewMode === 'mobile' ? (
-            <div className="flex-1 w-full h-full overflow-hidden flex flex-col bg-[#070B14]">
-              <MobileApp
-                currentUser={currentUser}
-                users={users}
-                offers={offers}
-                livePrices={livePrices}
-                stories={db.stories}
-                onOpenCreateOffer={() => setIsCreateOfferOpen(true)}
-                onOpenAuthModal={() => setIsAuthModalOpen(true)}
-                onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-                onSwitchToWebApp={() => setViewMode('web')}
-                onSaveOfferToggle={handleSaveOfferToggle}
-                onIgnoreOfferToggle={handleIgnoreOfferToggle}
-                onUpdatePrivacy={handleUpdatePrivacy}
-                onLogout={handleLogout}
-              />
-            </div>
-          ) : (
-            <WebAppDashboard
-              currentUser={currentUser}
-              users={users}
-              offers={offers}
-              livePrices={livePrices}
-              onOpenCreateOffer={() => setIsCreateOfferOpen(true)}
-              onOpenAuthModal={() => setIsAuthModalOpen(true)}
-              onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-              onSwitchToMobileApp={() => setViewMode('mobile')}
-              onSaveOfferToggle={handleSaveOfferToggle}
-              onLogout={handleLogout}
-            />
-          )}
-        </>
+        /* Authenticated Pure Native Mobile App (Vendors & Customers) */
+        <div className="flex-1 w-full h-full overflow-hidden flex flex-col bg-[#F8FAFC]">
+          <MobileApp
+            currentUser={currentUser}
+            users={users}
+            offers={offers}
+            livePrices={livePrices}
+            stories={db.stories}
+            onOpenCreateOffer={() => setIsCreateOfferOpen(true)}
+            onOpenAuthModal={() => setIsAuthModalOpen(true)}
+            onSaveOfferToggle={handleSaveOfferToggle}
+            onIgnoreOfferToggle={handleIgnoreOfferToggle}
+            onUpdatePrivacy={handleUpdatePrivacy}
+            onLogout={handleLogout}
+          />
+        </div>
       )}
 
+      {/* Global Modals */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

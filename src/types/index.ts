@@ -1,7 +1,7 @@
 export type Language = 'es' | 'en';
 export type AppViewMode = 'mobile' | 'web'; // User requested separated web and app sharing same DB!
 
-export type UserRole = 'trader' | 'admin';
+export type UserRole = 'vendor' | 'customer' | 'trader';
 export type BusinessRole = 'vendor' | 'customer';
 
 export interface UserAccount {
@@ -127,14 +127,6 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   isMe: boolean;
-}
-
-export interface AdminLog {
-  id: string;
-  action: string;
-  target: string;
-  timestamp: string;
-  adminName: string;
 }
 
 export interface PriceAlert {

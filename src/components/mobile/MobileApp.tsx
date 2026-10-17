@@ -59,7 +59,6 @@ import { BrandDemandChart } from './BrandDemandChart';
 import { PriceAlertsSection } from './PriceAlertsSection';
 import { PerformanceDashboard } from './PerformanceDashboard';
 import { WholesaleDetailModal } from './WholesaleDetailModal';
-import { DeploymentGuideModal } from './DeploymentGuideModal';
 import { VoiceSearchBar } from './VoiceSearchBar';
 import { OfflineBanner, OfflineStatusCard } from './OfflineBanner';
 import { 
@@ -84,8 +83,6 @@ interface MobileAppProps {
   stories: FeaturedStory[];
   onOpenCreateOffer: () => void;
   onOpenAuthModal: () => void;
-  onOpenAdminPanel: () => void;
-  onSwitchToWebApp: () => void;
   onSaveOfferToggle: (offerId: string) => void;
   onIgnoreOfferToggle: (offerId: string) => void;
   onUpdatePrivacy: (hidePhone: boolean, hideArchived: boolean) => void;
@@ -100,15 +97,23 @@ export const MobileApp: React.FC<MobileAppProps> = ({
   stories,
   onOpenCreateOffer,
   onOpenAuthModal,
-  onOpenAdminPanel,
-  onSwitchToWebApp,
   onSaveOfferToggle,
   onIgnoreOfferToggle,
   onUpdatePrivacy,
   onLogout,
 }) => {
-  // Navigation tabs
-  const [activeTab, setActiveTab] = useState<'inicio' | 'feed' | 'precios' | 'performance' | 'chat' | 'menu'>('inicio');
+  // Navigation tabs (Default: feed - Explorar Lotes Mayoristas)
+  const [activeTab, setActiveTab] = useState<'inicio' | 'feed' | 'precios' | 'performance' | 'chat' | 'menu'>('feed');
+
+  // Hamburger Drawer Menu State
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [activeRole, setActiveRole] = useState<'vendor' | 'customer'>(currentUser.accountType || 'vendor');
+
+  const handleToggleActiveRole = () => {
+    const next = activeRole === 'vendor' ? 'customer' : 'vendor';
+    setActiveRole(next);
+    currentUser.accountType = next;
+  };
 
   // Overlays / Modals
   const [selectedProfileUser, setSelectedProfileUser] = useState<UserAccount | null>(null);
@@ -121,7 +126,6 @@ export const MobileApp: React.FC<MobileAppProps> = ({
   const [selectedHub, setSelectedHub] = useState<string>('all');
   const [showOnlySaved, setShowOnlySaved] = useState<boolean>(false);
   const [expandedOffer, setExpandedOffer] = useState<TradeOffer | null>(null);
-  const [showDeployModal, setShowDeployModal] = useState<boolean>(false);
 
   // Offline Mode State & Metrics
   const [offlineStats, setOfflineStats] = useState<OfflineCacheStats>(() => getOfflineCacheStats());
@@ -358,37 +362,303 @@ export const MobileApp: React.FC<MobileAppProps> = ({
   const savedOffers = offers.filter((o) => o.isSaved);
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#070B14] text-slate-100 overflow-hidden relative selection:bg-[#00B074]/30">
+    <div className="w-full h-full flex flex-col bg-[#F8FAFC] text-[#0B192C] overflow-hidden relative selection:bg-[#00B074]/20 selection:text-[#00B074]">
       
-      {/* ======================================================== */}
-      {/* 1. TOP HEADER (VORTEQ B2B FINTECH 2026)                  */}
-      {/* ======================================================== */}
-      
-
-      {/* Offline Mode Alert Banner */}
-      <OfflineBanner
-        stats={offlineStats}
-        onToggleSimulatedOffline={handleToggleSimulatedOffline}
-        onForceRefreshCache={handleForceRefreshCache}
-      />
-
       {/* Reconnection Success Toast */}
       {reconnectedToast && (
-        <div className="bg-emerald-950 border-b border-emerald-500/40 px-3.5 py-2 text-xs text-emerald-300 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-1">
+        <div className="fixed top-safe left-4 right-4 z-50 bg-white border border-emerald-500/50 rounded-2xl p-3 text-xs text-emerald-800 flex items-center justify-between shadow-xl animate-in fade-in slide-in-from-top-1">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span className="font-bold">¡Conexión Restablecida! Datos sincronizados en tiempo real.</span>
+            <CheckCircle2 className="w-4 h-4 text-[#00B074] shrink-0" />
+            <span className="font-semibold">¡Conexión Restablecida! Datos sincronizados en tiempo real.</span>
           </div>
-          <button onClick={() => setReconnectedToast(false)} className="text-emerald-400 hover:text-white">
+          <button onClick={() => setReconnectedToast(false)} className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
       {/* ======================================================== */}
-      {/* 2. MAIN SCROLLABLE CONTENT BODY                          */}
+      {/* 1. TOP APP BAR (NATIVE IOS WITH LOGO & HAMBURGER MENU)   */}
       {/* ======================================================== */}
-      <div className="flex-1 overflow-y-auto pb-24 space-y-5">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 pt-safe pb-2.5 px-4 flex items-center justify-between shadow-xs">
+        {/* Left: Hamburger Menu Button */}
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-[#0B192C] flex items-center justify-center transition-all border border-slate-200 cursor-pointer shadow-2xs"
+          title="Abrir menú de opciones"
+          aria-label="Menú principal"
+        >
+          <Menu className="w-5 h-5 text-[#0B192C]" />
+        </button>
+
+        {/* Center: Official Vorteq Logo */}
+        <div className="flex items-center">
+          <VorteqLogo size="md" variant="full" theme="light" animated={false} />
+        </div>
+
+        {/* Right: Quick Role Pill (Vendor or Customer) */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleToggleActiveRole}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all cursor-pointer active:scale-95 shadow-2xs ${
+              activeRole === 'vendor'
+                ? 'bg-[#E6F7F0] text-[#008A5B] border-[#00B074]/40 hover:bg-emerald-100'
+                : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+            }`}
+            title="Toca para alternar rol (Vendor / Customer)"
+          >
+            {activeRole === 'vendor' ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-[#00B074] animate-pulse" />
+                <span>VENDOR</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-blue-600" />
+                <span>CUSTOMER</span>
+              </>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* ======================================================== */}
+      {/* HAMBURGER SLIDE-OUT DRAWER (MENU LATERAL COMPLETO)       */}
+      {/* ======================================================== */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          {/* Backdrop overlay */}
+          <div 
+            onClick={() => setIsDrawerOpen(false)}
+            className="fixed inset-0 bg-[#0B192C]/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+          />
+
+          {/* Drawer container (slides from left) */}
+          <div className="relative w-80 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col justify-between z-10 overflow-y-auto animate-in slide-in-from-left duration-250 border-r border-slate-200">
+            {/* Drawer Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between pt-safe">
+              <VorteqLogo size="sm" variant="full" theme="light" animated={false} />
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Drawer Body */}
+            <div className="p-4 space-y-5 flex-1 overflow-y-auto">
+              {/* Profile Card */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    style={{ backgroundColor: currentUser.avatarBgColor || '#00B074' }}
+                    className="w-11 h-11 rounded-2xl text-white font-black flex items-center justify-center text-sm shadow-xs shrink-0"
+                  >
+                    {currentUser.avatarText || 'VQ'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-bold text-sm text-[#0B192C] truncate">{currentUser.fullName}</h4>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#00B074] shrink-0" />
+                    </div>
+                    <p className="text-xs text-slate-500 truncate">{currentUser.companyName}</p>
+                    <span className="text-[10px] text-slate-400 font-mono">{currentUser.countryFlag} {currentUser.username}</span>
+                  </div>
+                </div>
+
+                {/* Role Switch Button */}
+                <div className="pt-2 border-t border-slate-200/80">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <span>Modo de Operación</span>
+                    <span className="font-mono text-[#00B074]">Activo</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleToggleActiveRole();
+                    }}
+                    className="w-full flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 hover:border-[#00B074] transition-all cursor-pointer shadow-2xs group"
+                  >
+                    <div className="flex items-center gap-2">
+                      {activeRole === 'vendor' ? (
+                        <Store className="w-4 h-4 text-[#00B074]" />
+                      ) : (
+                        <ShoppingBag className="w-4 h-4 text-blue-600" />
+                      )}
+                      <div className="text-left">
+                        <span className="block text-xs font-bold text-[#0B192C]">
+                          {activeRole === 'vendor' ? 'Modo Proveedor (Vendor)' : 'Modo Comprador (Customer)'}
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          {activeRole === 'vendor' ? 'Publica y vende lotes' : 'Explora y compra por volumen'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#00B074] group-hover:underline">
+                      Cambiar
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Navigation Links */}
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2">
+                  Navegación Rápida
+                </span>
+                <button
+                  onClick={() => { setActiveTab('feed'); setIsDrawerOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                    activeTab === 'feed' ? 'bg-[#E6F7F0] text-[#008A5B]' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <Boxes className="w-4 h-4 text-[#00B074]" />
+                  <span>Mercado Mayorista (Lotes)</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('precios'); setIsDrawerOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                    activeTab === 'precios' ? 'bg-[#E6F7F0] text-[#008A5B]' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <TrendingUp className="w-4 h-4 text-[#00B074]" />
+                  <span>Cotizaciones Spot 24h</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('chat'); setIsDrawerOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                    activeTab === 'chat' ? 'bg-[#E6F7F0] text-[#008A5B]' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4 text-[#00B074]" />
+                  <div className="flex-1 flex items-center justify-between">
+                    <span>Negociaciones B2B</span>
+                    {Object.values(chatMessages).flat().length > 0 && (
+                      <span className="bg-[#00B074] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">
+                        {Object.values(chatMessages).flat().length}
+                      </span>
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('menu'); setIsDrawerOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                    activeTab === 'menu' ? 'bg-[#E6F7F0] text-[#008A5B]' : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 text-[#00B074]" />
+                  <span>Mi Empresa & Cuenta</span>
+                </button>
+              </div>
+
+              {/* Categorías Directas */}
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2">
+                  Filtrar Categorías
+                </span>
+                <div className="grid grid-cols-2 gap-1.5 pt-1">
+                  {['all', 'iPhone', 'Samsung', 'MacBook'].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        setActiveFilterCategory(cat);
+                        setActiveTab('feed');
+                        setIsDrawerOpen(false);
+                      }}
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold text-center border transition-all cursor-pointer ${
+                        activeFilterCategory === cat
+                          ? 'bg-[#0B192C] text-white border-[#0B192C]'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {cat === 'all' ? 'Ver Todos' : cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2">
+                  Acciones Rápidas
+                </span>
+                <button
+                  onClick={() => {
+                    setShowOnlySaved(true);
+                    setActiveTab('feed');
+                    setIsDrawerOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 hover:border-slate-300 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <BookmarkCheck className="w-4 h-4 text-[#00B074]" />
+                    <span>Lotes Guardados</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">{savedOffers.length}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleForceRefreshCache();
+                    setIsDrawerOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 hover:border-slate-300 transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="w-4 h-4 text-[#00B074]" />
+                  <span>Sincronizar Datos en Vivo</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowQrModal(true);
+                    setIsDrawerOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 hover:border-slate-300 transition-colors cursor-pointer"
+                >
+                  <QrCode className="w-4 h-4 text-slate-600" />
+                  <span>Compartir Perfil QR</span>
+                </button>
+              </div>
+
+              {/* Escrow Trust Information */}
+              <div className="p-3 bg-[#E6F7F0] border border-[#00B074]/30 rounded-2xl space-y-1 text-xs">
+                <div className="flex items-center gap-1.5 text-[#008A5B] font-bold">
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  <span>Custodia Escrow B2B</span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Fondos retenidos de forma segura hasta la recepción física e inspección IMEI de la mercancía.
+                </p>
+              </div>
+            </div>
+
+            {/* Drawer Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-2 pb-safe">
+              <button
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  if (onLogout) onLogout();
+                }}
+                className="w-full py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Cerrar Sesión</span>
+              </button>
+              <div className="text-center text-[10px] text-slate-400 font-mono">
+                Vorteq B2B Network · Native v2.6
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MAIN SCROLLABLE CONTENT BODY (NATIVE IOS FLUID SCROLL)   */}
+      {/* ======================================================== */}
+      <div className="flex-1 overflow-y-auto overscroll-contain pb-44 space-y-4">
         
         {/* ======================================================== */}
         {/* TAB 1: INICIO (NUEVA CARA MODERNA, DINÁMICA Y FUNCIONAL) */}
@@ -484,42 +754,42 @@ export const MobileApp: React.FC<MobileAppProps> = ({
               <div className="grid grid-cols-4 gap-2 text-center">
                 <button
                   onClick={onOpenCreateOffer}
-                  className="bg-slate-900/90 border border-slate-800 hover:border-[#00B074]/50 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 transition-all group"
+                  className="bg-white border border-slate-200 hover:border-[#00B074]/50 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 transition-all shadow-2xs group cursor-pointer"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-[#00B074]/10 border border-[#00B074]/30 flex items-center justify-center text-[#00B074] group-hover:scale-105 transition-transform">
+                  <div className="w-9 h-9 rounded-xl bg-[#E6F7F0] border border-[#00B074]/30 flex items-center justify-center text-[#008A5B] group-hover:scale-105 transition-transform">
                     <Plus className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-semibold text-slate-300">Publicar</span>
+                  <span className="text-[10px] font-semibold text-[#0B192C]">Publicar</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('precios')}
-                  className="bg-slate-900/90 border border-slate-800 hover:border-[#00B074]/50 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 transition-all group"
+                  className="bg-white border border-slate-200 hover:border-[#00B074]/50 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 transition-all shadow-2xs group cursor-pointer"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-[#00B074]/15 border border-[#00B074]/40 flex items-center justify-center text-[#00B074] group-hover:scale-105 transition-transform">
+                  <div className="w-9 h-9 rounded-xl bg-[#E6F7F0] border border-[#00B074]/40 flex items-center justify-center text-[#008A5B] group-hover:scale-105 transition-transform">
                     <TrendingUp className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-semibold text-slate-300">Precios Spot</span>
+                  <span className="text-[10px] font-semibold text-[#0B192C]">Precios Spot</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('performance')}
-                  className="bg-slate-900/90 border border-slate-800 hover:border-[#00B074]/50 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 transition-all group cursor-pointer"
+                  className="bg-white border border-slate-200 hover:border-[#00B074]/50 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 transition-all shadow-2xs group cursor-pointer"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-emerald-950/60 border border-emerald-800 flex items-center justify-center text-[#00B074] group-hover:scale-105 transition-transform">
-                    <TrendingUp className="w-4 h-4 text-[#00B074]" />
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-[#008A5B] group-hover:scale-105 transition-transform">
+                    <Activity className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-semibold text-slate-300">Performance</span>
+                  <span className="text-[10px] font-semibold text-[#0B192C]">Rendimiento</span>
                 </button>
 
                 <button
                   onClick={() => setShowPrivacyModal(true)}
-                  className="bg-slate-900/90 border border-slate-800 hover:border-[#00B074]/50 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 transition-all group"
+                  className="bg-white border border-slate-200 hover:border-[#00B074]/50 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 transition-all shadow-2xs group cursor-pointer"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-indigo-950/60 border border-indigo-800 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 group-hover:scale-105 transition-transform">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-semibold text-slate-300">Privacidad</span>
+                  <span className="text-[10px] font-semibold text-[#0B192C]">Privacidad</span>
                 </button>
               </div>
             </div>
@@ -528,12 +798,12 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             <div className="px-4 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <Globe className="w-4 h-4 text-cyan-400" />
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  <Globe className="w-4 h-4 text-[#00B074]" />
+                  <h3 className="text-xs font-bold text-[#0B192C] uppercase tracking-wider">
                     Hubs y Almacenes Internacionales
                   </h3>
                 </div>
-                <span className="text-[11px] font-mono text-cyan-400">Stock Físico 2026</span>
+                <span className="text-[11px] font-mono text-[#008A5B] font-bold">Stock Físico 2026</span>
               </div>
 
               {/* Horizontal Pill Filters for Hubs */}
@@ -542,10 +812,10 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                   <button
                     key={hub.id}
                     onClick={() => setSelectedHub(hub.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap border transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap border transition-all flex items-center gap-1.5 cursor-pointer ${
                       selectedHub === hub.id
-                        ? 'bg-cyan-950 text-cyan-300 border-cyan-500 shadow-sm shadow-cyan-950'
-                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                        ? 'bg-[#0B192C] text-white border-[#0B192C] shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <span>{hub.flag}</span>
@@ -557,22 +827,22 @@ export const MobileApp: React.FC<MobileAppProps> = ({
 
             {/* SPOTLIGHT DE ARBITRAJE ALGORÍTMICO */}
             <div className="px-4">
-              <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-800/40 rounded-2xl p-3.5 space-y-2">
+              <div className="bg-[#E6F7F0] border border-[#00B074]/30 rounded-2xl p-3.5 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <span className="text-[#008A5B] font-bold flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5" />
-                    Oportunidad de Arbitraje Detectada
+                    Oportunidad de Arbitraje B2B
                   </span>
-                  <span className="text-[11px] font-mono text-emerald-400 font-bold">+4.35% ROI Neto</span>
+                  <span className="text-[11px] font-mono text-[#008A5B] font-bold">+4.35% ROI Neto</span>
                 </div>
-                <div className="text-xs text-slate-300">
-                  Comprar <span className="text-white font-semibold">iPhone 16 Pro Max</span> en <span className="text-cyan-400 font-mono">Miami EXW ($1,045)</span> ➔ Vender en <span className="text-blue-400 font-mono">Fráncfort DDP ($1,115)</span>.
+                <div className="text-xs text-slate-700">
+                  Comprar <span className="font-bold text-[#0B192C]">iPhone 16 Pro Max</span> en <span className="text-emerald-700 font-mono font-semibold">Miami EXW ($1,045)</span> ➔ Vender en <span className="text-blue-700 font-mono font-semibold">Fráncfort DDP ($1,115)</span>.
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800">
-                  <span>Margen neto tras flete aéreo: <strong className="text-white font-mono">+$45.50/ud</strong></span>
+                <div className="flex items-center justify-between text-[11px] text-slate-600 pt-1 border-t border-emerald-200/60">
+                  <span>Margen neto estimado: <strong className="text-[#0B192C] font-mono font-bold">+$45.50/ud</strong></span>
                   <button
                     onClick={() => setActiveTab('feed')}
-                    className="text-amber-400 hover:underline font-semibold flex items-center gap-0.5"
+                    className="text-[#008A5B] hover:underline font-bold flex items-center gap-0.5 cursor-pointer"
                   >
                     Ver Lotes ➔
                   </button>
@@ -580,19 +850,19 @@ export const MobileApp: React.FC<MobileAppProps> = ({
               </div>
             </div>
 
-            {/* DEMANDA DE LOS ÚLTIMOS 7 DÍAS POR MARCA (RECHARTS BAR CHART) */}
+            {/* DEMANDA DE LOS ÚLTIMOS 7 DÍAS POR MARCA */}
             <BrandDemandChart />
 
-            {/* TOP LOTES RECIENTES (HOT WHOLESALE DROPS) */}
+            {/* TOP LOTES RECIENTES */}
             <div className="px-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <Boxes className="w-4 h-4 text-cyan-400" />
+                <h3 className="text-xs font-bold text-[#0B192C] uppercase tracking-wider flex items-center gap-1.5">
+                  <Boxes className="w-4 h-4 text-[#00B074]" />
                   <span>Últimos Lotes Verificados en el Piso</span>
                 </h3>
                 <button
                   onClick={() => setActiveTab('feed')}
-                  className="text-xs text-cyan-400 font-semibold hover:underline"
+                  className="text-xs text-[#008A5B] font-bold hover:underline cursor-pointer"
                 >
                   Ver todos ({filteredOffers.length}) ➔
                 </button>
@@ -603,15 +873,15 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                 return (
                   <div
                     key={offer.id}
-                    className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-3.5 space-y-2.5 transition-all shadow-xs"
+                    className="bg-white border border-slate-200/90 hover:border-[#00B074]/50 rounded-2xl p-3.5 space-y-2.5 transition-all shadow-xs"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-1.5 text-[10px] font-mono mb-0.5">
-                          <span className={`px-2 py-0.2 rounded font-bold ${
+                          <span className={`px-2 py-0.5 rounded-md font-bold ${
                             isSeller 
-                              ? 'bg-blue-950 text-blue-400 border border-blue-800/60' 
-                              : 'bg-emerald-950 text-emerald-400 border border-emerald-800/60'
+                              ? 'bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30' 
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
                           }`}>
                             {isSeller ? 'VENTA / ASK' : 'COMPRA / BID'}
                           </span>
@@ -619,32 +889,32 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                         </div>
                         <h4 
                           onClick={() => setExpandedOffer(offer)}
-                          className="text-sm font-bold text-white hover:text-cyan-300 transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="text-sm font-bold text-[#0B192C] hover:text-[#00B074] transition-colors cursor-pointer flex items-center gap-1.5"
                         >
                           <span>{offer.title}</span>
-                          <Maximize2 className="w-3 h-3 text-cyan-400 opacity-70" />
+                          <Maximize2 className="w-3 h-3 text-[#00B074] opacity-70" />
                         </h4>
                       </div>
 
                       <div className="text-right font-mono shrink-0">
-                        <span className="text-base font-black text-white">${offer.priceUSD}</span>
-                        <span className="text-[10px] text-slate-400 block font-sans">x {offer.quantity} pcs</span>
+                        <span className="text-base font-black text-[#00B074]">${offer.priceUSD}</span>
+                        <span className="text-[10px] text-slate-500 block font-sans">x {offer.quantity} pcs</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
+                    <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className="text-white font-medium">{offer.stockLocationFlag} {offer.stockLocation}</span>
+                        <span className="text-[#0B192C] font-semibold">{offer.stockLocationFlag} {offer.stockLocation}</span>
                         <span>·</span>
-                        <span className="text-slate-400 truncate max-w-[140px]">{offer.companyName}</span>
+                        <span className="text-slate-500 truncate max-w-[140px]">{offer.companyName}</span>
                       </div>
 
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setExpandedOffer(offer)}
-                          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-[#0B192C] border border-slate-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                         >
-                          <Maximize2 className="w-3 h-3 text-cyan-400" />
+                          <Maximize2 className="w-3 h-3 text-slate-600" />
                           <span>Expandir</span>
                         </button>
 
@@ -656,7 +926,7 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                               setActiveTab('chat');
                             }
                           }}
-                          className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                          className="px-2.5 py-1 bg-[#00B074] hover:bg-[#009663] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
                         >
                           Negociar
                         </button>
@@ -675,6 +945,36 @@ export const MobileApp: React.FC<MobileAppProps> = ({
         {/* ======================================================== */}
         {activeTab === 'feed' && (
           <div className="p-4 space-y-4">
+            {/* Clean contextual header */}
+            <div className="flex items-center justify-between pt-1 pb-1">
+              <div>
+                <h2 className="text-xl font-black text-[#0B192C] tracking-tight">
+                  Mercado Mayorista
+                </h2>
+                <p className="text-xs text-slate-500 font-medium">
+                  {filteredOffers.length} lotes de electrónica con arbitraje y custodia Escrow
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handleForceRefreshCache}
+                  className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-[#00B074] active:scale-95 transition-all cursor-pointer shadow-2xs"
+                  title="Refrescar lotes"
+                >
+                  <RefreshCw className="w-4 h-4 text-[#00B074]" />
+                </button>
+                <button
+                  onClick={() => setShowNotificationsModal(true)}
+                  className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 relative active:scale-95 transition-all cursor-pointer shadow-2xs"
+                  title="Notificaciones"
+                >
+                  <Bell className="w-4 h-4" />
+                  <span className="w-2 h-2 bg-[#00B074] rounded-full absolute top-1.5 right-1.5 animate-pulse" />
+                </button>
+              </div>
+            </div>
+
             {/* Búsqueda por Voz y Filtros Inteligentes (Web Speech API) */}
             <VoiceSearchBar
               searchQuery={searchQuery}
@@ -689,40 +989,40 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono scrollbar-none">
               <button
                 onClick={() => setActiveFilterCategory('all')}
-                className={`px-3 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap cursor-pointer border ${
                   activeFilterCategory === 'all'
-                    ? 'bg-[#00B074] text-white font-bold shadow-xs'
-                    : 'bg-slate-900 text-slate-400 hover:text-white'
+                    ? 'bg-[#0B192C] text-white font-bold border-[#0B192C] shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                 }`}
               >
                 Todos ({offers.length})
               </button>
               <button
                 onClick={() => setActiveFilterCategory('iPhone')}
-                className={`px-3 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap cursor-pointer border ${
                   activeFilterCategory === 'iPhone'
-                    ? 'bg-[#00B074] text-white font-bold shadow-xs'
-                    : 'bg-slate-900 text-slate-400 hover:text-white'
+                    ? 'bg-[#0B192C] text-white font-bold border-[#0B192C] shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                 }`}
               >
                 iPhones
               </button>
               <button
                 onClick={() => setActiveFilterCategory('Samsung')}
-                className={`px-3 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap cursor-pointer border ${
                   activeFilterCategory === 'Samsung'
-                    ? 'bg-[#00B074] text-white font-bold shadow-xs'
-                    : 'bg-slate-900 text-slate-400 hover:text-white'
+                    ? 'bg-[#0B192C] text-white font-bold border-[#0B192C] shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                 }`}
               >
                 Samsung
               </button>
               <button
                 onClick={() => setActiveFilterCategory('MacBook')}
-                className={`px-3 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap cursor-pointer border ${
                   activeFilterCategory === 'MacBook'
-                    ? 'bg-[#00B074] text-white font-bold shadow-xs'
-                    : 'bg-slate-900 text-slate-400 hover:text-white'
+                    ? 'bg-[#0B192C] text-white font-bold border-[#0B192C] shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                 }`}
               >
                 MacBooks
@@ -730,25 +1030,25 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             </div>
 
             {/* INTERRUPTOR (SWITCH): FILTRAR SOLO OFERTAS GUARDADAS */}
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-[#0B192C] via-[#091424] to-[#060D18] border border-slate-800 shadow-md">
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
               <div className="flex items-center gap-2.5">
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
                   showOnlySaved 
-                    ? 'bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40 shadow-xs' 
-                    : 'bg-slate-900 text-slate-400 border border-slate-800'
+                    ? 'bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30' 
+                    : 'bg-slate-100 text-slate-500 border border-slate-200'
                 }`}>
-                  {showOnlySaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                  {showOnlySaved ? <BookmarkCheck className="w-4 h-4 text-[#00B074]" /> : <Bookmark className="w-4 h-4 text-slate-400" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-white">Solo Ofertas Guardadas</span>
+                    <span className="text-xs font-bold text-[#0B192C]">Solo Ofertas Guardadas</span>
                     {savedOffers.length > 0 && (
-                      <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40 font-bold">
+                      <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30 font-bold">
                         {savedOffers.length} {savedOffers.length === 1 ? 'lote' : 'lotes'}
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-slate-400 block font-medium">
+                  <span className="text-[10px] text-slate-500 block font-medium">
                     {showOnlySaved 
                       ? 'Mostrando tus lotes marcados de interés' 
                       : 'Filtra y muestra exclusivamente tus lotes de interés'}
@@ -763,7 +1063,7 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                 aria-checked={showOnlySaved}
                 onClick={() => setShowOnlySaved(!showOnlySaved)}
                 className={`w-12 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer focus:outline-none shrink-0 ${
-                  showOnlySaved ? 'bg-[#00B074]' : 'bg-slate-700/80'
+                  showOnlySaved ? 'bg-[#00B074]' : 'bg-slate-300'
                 }`}
               >
                 <div
@@ -799,15 +1099,15 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             {/* Feed List of Wholesale Cards */}
             <div className="space-y-3.5">
               {filteredOffers.length === 0 ? (
-                <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-7 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-[#00B074]/15 border border-[#00B074]/30 text-[#00B074] mx-auto flex items-center justify-center">
+                <div className="bg-white border border-slate-200 rounded-2xl p-7 text-center space-y-3 shadow-xs">
+                  <div className="w-12 h-12 rounded-2xl bg-[#E6F7F0] border border-[#00B074]/30 text-[#00B074] mx-auto flex items-center justify-center">
                     <BookmarkCheck className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-white">
+                    <h4 className="text-sm font-bold text-[#0B192C]">
                       {showOnlySaved ? 'No tienes ofertas guardadas' : 'No se encontraron ofertas'}
                     </h4>
-                    <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
                       {showOnlySaved 
                         ? 'Haz clic en el icono de marcador 🔖 en cualquier lote del feed para agregarlo a tus guardados.'
                         : 'Prueba ajustando los filtros de búsqueda o la categoría seleccionada.'}
@@ -832,23 +1132,23 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                   return (
                     <div
                       key={offer.id}
-                      className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md hover:border-slate-700 transition-all"
+                      className="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3 shadow-xs hover:shadow-md hover:border-[#00B074]/50 transition-all"
                     >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-0.5 flex-1">
+                      <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
                             isSeller 
-                              ? 'bg-blue-950 text-blue-400 border border-blue-800/60' 
-                              : 'bg-emerald-950 text-emerald-400 border border-emerald-800/60'
+                              ? 'bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30' 
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
                           }`}>
                             {isSeller ? 'VENDER / OFERTA' : 'COMPRAR / BID'}
                           </span>
                           {offerImages.length > 0 && (
                             <span 
                               onClick={() => setExpandedOffer(offer)}
-                              className="text-[10px] font-mono text-cyan-400 bg-cyan-950/70 border border-cyan-800/60 px-1.5 py-0.5 rounded cursor-pointer hover:bg-cyan-900"
+                              className="text-[10px] font-mono text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md cursor-pointer hover:bg-slate-200 transition-colors"
                             >
                               📷 {offerImages.length} fotos
                             </span>
@@ -857,18 +1157,18 @@ export const MobileApp: React.FC<MobileAppProps> = ({
 
                         <h3 
                           onClick={() => setExpandedOffer(offer)}
-                          className="text-base font-bold text-white leading-snug hover:text-cyan-300 transition-colors cursor-pointer pt-0.5 flex items-center justify-between group"
+                          className="text-base font-bold text-[#0B192C] leading-snug hover:text-[#00B074] transition-colors cursor-pointer pt-0.5 flex items-center justify-between group"
                         >
                           <span>{offer.title}</span>
-                          <span className="text-[11px] text-cyan-400 font-mono flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                          <span className="text-[11px] text-[#00B074] font-mono flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                             <Maximize2 className="w-3.5 h-3.5" />
                           </span>
                         </h3>
                       </div>
 
                       <div className="text-right font-mono shrink-0 pl-2">
-                        <span className="text-lg font-black text-cyan-400">${offer.priceUSD}</span>
-                        <span className="text-[10px] text-slate-400 block font-sans">Lote: {offer.quantity} pcs</span>
+                        <span className="text-xl font-black text-[#00B074]">${offer.priceUSD}</span>
+                        <span className="text-[10px] text-slate-500 block font-sans font-medium">Lote: {offer.quantity} pcs</span>
                       </div>
                     </div>
 
@@ -880,7 +1180,7 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                             const found = users.find((u) => u.username === offer.username);
                             if (found) setSelectedProfileUser(found);
                           }}
-                          className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-cyan-400 cursor-pointer"
+                          className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-[#0B192C] cursor-pointer"
                         >
                           {offer.companyName.substring(0, 2).toUpperCase()}
                         </div>
@@ -890,51 +1190,51 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                               const found = users.find((u) => u.username === offer.username);
                               if (found) setSelectedProfileUser(found);
                             }}
-                            className="font-bold text-slate-200 hover:text-cyan-400 cursor-pointer"
+                            className="font-bold text-[#0B192C] hover:text-[#00B074] cursor-pointer"
                           >
                             {offer.companyName}
                           </div>
-                          <div className="text-[11px] text-slate-400">{offer.username} · {offer.companySize}</div>
+                          <div className="text-[11px] text-slate-500">{offer.username} · {offer.companySize}</div>
                         </div>
                       </div>
 
-                      <span className="text-xs font-medium text-slate-300 font-mono">
+                      <span className="text-xs font-semibold text-slate-600 font-mono">
                         {offer.stockLocationFlag} {offer.stockLocation}
                       </span>
                     </div>
 
-                    {/* Physical Condition Quick Highlights (Expand Teaser) */}
+                    {/* Physical Condition Quick Highlights */}
                     <div 
                       onClick={() => setExpandedOffer(offer)}
-                      className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-950/70 border border-slate-850 hover:border-cyan-800/60 rounded-xl cursor-pointer text-[11px] text-slate-300 transition-colors"
+                      className="flex flex-wrap items-center gap-1.5 p-2.5 bg-slate-50 border border-slate-200/80 hover:border-emerald-300 rounded-xl cursor-pointer text-[11px] text-slate-600 transition-colors"
                       title="Haz clic para ver especificaciones técnicas y condición física completa"
                     >
-                      <span className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-300 font-medium truncate max-w-[200px]">
+                      <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 font-medium truncate max-w-[200px]">
                         📦 {boxStatus.split('(')[0]}
                       </span>
-                      <span className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-emerald-400 font-medium truncate max-w-[190px]">
+                      <span className="px-2 py-0.5 rounded-md bg-[#E6F7F0] border border-[#00B074]/30 text-[#008A5B] font-medium truncate max-w-[190px]">
                         🛡️ {warranty.split('(')[0]}
                       </span>
-                      <span className="ml-auto text-[10px] text-cyan-400 font-mono font-semibold hover:underline">
+                      <span className="ml-auto text-[10px] text-[#00B074] font-mono font-bold hover:underline">
                         Ver ficha ➔
                       </span>
                     </div>
 
                     {/* Notes Box */}
-                    <div className="bg-slate-950/80 rounded-xl p-3 text-xs text-slate-300 whitespace-pre-line leading-relaxed font-mono border border-slate-850">
+                    <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 whitespace-pre-line leading-relaxed font-mono border border-slate-200/80">
                       {offer.notes}
                     </div>
 
                     {/* Actions Row */}
-                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                       <div className="flex items-center gap-2">
                         {/* Expand Button */}
                         <button
                           onClick={() => setExpandedOffer(offer)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-950/90 to-blue-950/90 hover:from-cyan-900 hover:to-blue-900 text-cyan-300 border border-cyan-800/80 hover:border-cyan-600 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-[#0B192C] border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
                         >
-                          <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
-                          <span>Expandir</span>
+                          <Maximize2 className="w-3.5 h-3.5 text-slate-600" />
+                          <span>Detalles</span>
                         </button>
 
                         <button
@@ -945,19 +1245,21 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                               setActiveTab('chat');
                             }
                           }}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-colors cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00B074] hover:bg-[#009663] text-white rounded-xl font-bold transition-colors cursor-pointer shadow-2xs"
                         >
-                          <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
+                          <MessageSquare className="w-3.5 h-3.5 text-white" />
                           <span>Negociar</span>
                         </button>
 
                         <button
                           onClick={() => onSaveOfferToggle(offer.id)}
-                          className={`flex items-center gap-1 px-2 py-1.5 transition-colors cursor-pointer rounded-xl ${
-                            offer.isSaved ? 'text-[#00B074] font-bold bg-[#00B074]/10' : 'hover:text-white'
+                          className={`flex items-center gap-1 px-2.5 py-1.5 transition-colors cursor-pointer rounded-xl border ${
+                            offer.isSaved 
+                              ? 'text-[#008A5B] font-bold bg-[#E6F7F0] border-[#00B074]/30' 
+                              : 'text-slate-500 hover:text-slate-800 bg-white border-slate-200'
                           }`}
                         >
-                          {offer.isSaved ? <BookmarkCheck className="w-3.5 h-3.5 text-[#00B074]" /> : <Bookmark className="w-3.5 h-3.5" />}
+                          {offer.isSaved ? <BookmarkCheck className="w-3.5 h-3.5 text-[#00B074]" /> : <Bookmark className="w-3.5 h-3.5 text-slate-400" />}
                           <span className="hidden sm:inline">{offer.isSaved ? 'Guardado' : 'Guardar'}</span>
                         </button>
                       </div>
@@ -966,9 +1268,9 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                         href={`https://wa.me/${(offer.phoneWhatsApp || '+34600112233').replace('+', '')}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-1 text-[#00B074] hover:text-emerald-300 font-bold px-2 py-1.5 rounded-xl hover:bg-[#00B074]/10 transition-colors"
+                        className="flex items-center gap-1 text-[#008A5B] bg-[#E6F7F0] border border-[#00B074]/30 hover:bg-emerald-100 font-bold px-2.5 py-1.5 rounded-xl transition-colors"
                       >
-                        <Share2 className="w-3.5 h-3.5" />
+                        <Share2 className="w-3.5 h-3.5 text-[#00B074]" />
                         <span>WhatsApp</span>
                       </a>
                     </div>
@@ -984,35 +1286,35 @@ export const MobileApp: React.FC<MobileAppProps> = ({
         {/* ======================================================== */}
         {activeTab === 'precios' && (
           <div className="p-4 space-y-4">
-            <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-blue-950 text-white p-4 rounded-2xl border border-cyan-800/40 shadow-lg space-y-2">
+            <div className="bg-gradient-to-r from-[#0B192C] to-[#152e4d] text-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold tracking-wider text-cyan-300 uppercase flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400 uppercase flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#00B074] animate-ping" />
                   RADAR SPOT EN DIRECTO
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono">Bolsa Global B2B</span>
+                <span className="text-[10px] text-slate-300 font-mono">Bolsa Global B2B</span>
               </div>
-              <h3 className="text-lg font-black tracking-tight">Precios de Referencia Mayorista</h3>
+              <h3 className="text-lg font-black tracking-tight text-white">Precios de Referencia Mayorista</h3>
               <p className="text-xs text-slate-300">
-                Monitorea en tiempo real las variaciones de precio en las principales referencias antes de cerrar tus compras.
+                Monitorea en tiempo real las variaciones de precio en las principales referencias antes de cerrar tus compras o ventas.
               </p>
             </div>
 
             {/* Simular Fluctuación Action Bar */}
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-slate-400 font-medium">Cotizaciones actualizadas en vivo</span>
+              <span className="text-xs text-slate-500 font-medium">Cotizaciones actualizadas en vivo</span>
               <button
                 onClick={handleSimulatePriceFluctuation}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 text-cyan-300 rounded-xl text-xs font-bold transition-all shadow-xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-[#0B192C] rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
               >
-                <RefreshCw className="w-3 h-3" />
+                <RefreshCw className="w-3.5 h-3.5 text-[#00B074]" />
                 <span>Simular Fluctuación</span>
               </button>
             </div>
 
             {priceNotice && (
-              <div className="p-3 rounded-xl bg-cyan-950/80 border border-cyan-700 text-cyan-200 text-xs font-mono animate-fadeIn flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-400" />
+              <div className="p-3 rounded-xl bg-[#E6F7F0] border border-[#00B074]/40 text-[#008A5B] text-xs font-mono animate-fadeIn flex items-center gap-2">
+                <Check className="w-4 h-4 text-[#00B074]" />
                 <span>{priceNotice}</span>
               </div>
             )}
@@ -1024,23 +1326,23 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md"
+                    className="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3 shadow-xs hover:shadow-md transition-all"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">
+                        <span className="text-[10px] font-mono text-[#008A5B] bg-[#E6F7F0] px-2 py-0.5 rounded-md uppercase tracking-wider inline-block font-bold">
                           {item.brand} · {item.category}
                         </span>
-                        <h4 className="text-base font-bold text-white mt-0.5">{item.model}</h4>
-                        <span className="text-xs text-slate-400">{item.specs}</span>
+                        <h4 className="text-base font-bold text-[#0B192C] mt-1">{item.model}</h4>
+                        <span className="text-xs text-slate-500 font-medium">{item.specs}</span>
                       </div>
 
                       <div className="text-right font-mono">
-                        <div className="text-lg font-black text-white">
+                        <div className="text-lg font-black text-[#0B192C]">
                           ${item.currentPriceUSD.toLocaleString()} USD
                         </div>
                         <div className={`inline-flex items-center gap-0.5 text-xs font-bold ${
-                          isPositive ? 'text-emerald-400' : 'text-rose-400'
+                          isPositive ? 'text-[#00B074]' : 'text-rose-500'
                         }`}>
                           {isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                           {isPositive ? `+$${item.change24hUSD}` : `-$${Math.abs(item.change24hUSD)}`} ({item.change24hPct}%)
@@ -1049,14 +1351,14 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                     </div>
 
                     {/* High / Low Range Bar */}
-                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 font-mono">
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-mono">
                       <span>Rango 24h: ${item.low24hUSD} - ${item.high24hUSD}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                         item.marketSentiment === 'Subiendo' 
-                          ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' 
+                          ? 'bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30' 
                           : item.marketSentiment === 'Bajando'
-                          ? 'bg-rose-950 text-rose-400 border border-rose-800'
-                          : 'bg-slate-800 text-slate-300'
+                          ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                          : 'bg-slate-100 text-slate-600'
                       }`}>
                         {item.marketSentiment}
                       </span>
@@ -1074,8 +1376,8 @@ export const MobileApp: React.FC<MobileAppProps> = ({
         {activeTab === 'chat' && (
           <div className="p-4 space-y-4">
             {chatStatusNotice && (
-              <div className="bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs px-3 py-2 rounded-xl flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <div className="bg-[#E6F7F0] border border-[#00B074]/40 text-[#008A5B] text-xs px-3 py-2 rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#00B074] shrink-0" />
                 <span>{chatStatusNotice}</span>
               </div>
             )}
@@ -1083,30 +1385,30 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             {activeChatUser ? (
               <div className="space-y-3">
                 {/* Active Chat Header */}
-                <div className="flex items-center gap-2 pb-2.5 border-b border-slate-800">
+                <div className="flex items-center gap-2 pb-2.5 border-b border-slate-200">
                   <button
                     onClick={() => setActiveChatUser(null)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer text-xs flex items-center gap-1 font-semibold"
+                    className="p-1.5 rounded-lg text-slate-600 hover:text-[#0B192C] hover:bg-slate-100 transition-colors cursor-pointer text-xs flex items-center gap-1 font-semibold"
                   >
                     ← Volver
                   </button>
 
                   <div
-                    style={{ backgroundColor: activeChatUser.avatarBgColor || '#0ea5e9' }}
-                    className="w-8 h-8 rounded-lg text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs"
+                    style={{ backgroundColor: activeChatUser.avatarBgColor || '#00B074' }}
+                    className="w-8 h-8 rounded-xl text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs"
                   >
                     {activeChatUser.avatarText || activeChatUser.fullName.substring(0, 2)}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-bold text-white truncate">{activeChatUser.companyName}</h4>
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" title="En línea" />
+                      <h4 className="text-xs font-bold text-[#0B192C] truncate">{activeChatUser.companyName}</h4>
+                      <span className="w-2 h-2 rounded-full bg-[#00B074] animate-pulse" title="En línea" />
                     </div>
-                    <div className="text-[10px] text-slate-400 truncate flex items-center gap-1">
+                    <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
                       <span>{activeChatUser.fullName}</span>
                       <span>·</span>
-                      <span className="text-emerald-400 font-mono">KYC Verificado</span>
+                      <span className="text-emerald-700 font-mono font-medium">KYC Verificado</span>
                     </div>
                   </div>
 
@@ -1114,43 +1416,43 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={handleClearCurrentChat}
-                      title="Limpiar historial de este chat (sincronizado con LocalStorage)"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 border border-transparent hover:border-rose-900 transition-colors cursor-pointer"
+                      title="Limpiar historial de este chat"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
 
                     <a
                       href={`https://wa.me/${activeChatUser.phoneWhatsApp.replace('+', '')}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="p-1.5 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 hover:bg-emerald-900 transition-colors cursor-pointer flex items-center gap-1"
+                      className="p-1.5 rounded-lg bg-emerald-50 text-[#008A5B] border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer flex items-center gap-1"
                       title="Negociar por WhatsApp"
                     >
-                      <Share2 className="w-3.5 h-3.5" />
+                      <Share2 className="w-4 h-4" />
                     </a>
                   </div>
                 </div>
 
                 {/* LocalStorage Persistence & Offline Indicator Banner */}
-                <div className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-[10px] font-mono transition-colors ${
+                <div className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl border text-[10px] font-mono transition-colors ${
                   offlineStats.effectiveOffline 
-                    ? 'bg-amber-950/40 border-amber-800/60 text-amber-300' 
-                    : 'bg-slate-900/60 border-slate-800/80 text-slate-400'
+                    ? 'bg-amber-50 border-amber-200 text-amber-800' 
+                    : 'bg-slate-50 border-slate-200 text-slate-600'
                 }`}>
                   <div className="flex items-center gap-1.5">
                     {offlineStats.effectiveOffline ? (
-                      <WifiOff className="w-3 h-3 text-amber-400" />
+                      <WifiOff className="w-3 h-3 text-amber-600" />
                     ) : (
                       <Database className="w-3 h-3 text-[#00B074]" />
                     )}
                     <span>
                       {offlineStats.effectiveOffline 
                         ? 'Modo Offline: Historial disponible en localStorage' 
-                        : <>Persistencia activa: <strong className="text-slate-200">localStorage</strong></>}
+                        : <>Persistencia activa: <strong className="text-[#0B192C]">localStorage</strong></>}
                     </span>
                   </div>
-                  <span className={offlineStats.effectiveOffline ? 'text-amber-400 font-bold flex items-center gap-1' : 'text-[#00B074] flex items-center gap-1'}>
+                  <span className={offlineStats.effectiveOffline ? 'text-amber-700 font-bold flex items-center gap-1' : 'text-[#008A5B] font-semibold flex items-center gap-1'}>
                     {offlineStats.effectiveOffline ? (
                       <>⚡ Sin Conexión</>
                     ) : (
@@ -1160,13 +1462,13 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                 </div>
 
                 {/* Messages Container */}
-                <div className="h-72 overflow-y-auto space-y-2.5 p-3 bg-slate-950/90 rounded-2xl border border-slate-850">
+                <div className="h-72 overflow-y-auto space-y-2.5 p-3 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-inner">
                   {(!chatMessages[activeChatUser.id] || chatMessages[activeChatUser.id].length === 0) ? (
                     <div className="h-full flex flex-col items-center justify-center text-center p-4 space-y-2 text-slate-500">
-                      <MessageSquare className="w-8 h-8 text-slate-600" />
-                      <p className="text-xs text-slate-400 font-medium">Inicia la negociación con {activeChatUser.companyName}</p>
-                      <p className="text-[10px] text-slate-500 max-w-xs">
-                        Tus propuestas y mensajes se conservarán automáticamente incluso si recargas la aplicación.
+                      <MessageSquare className="w-8 h-8 text-slate-400" />
+                      <p className="text-xs text-slate-600 font-bold">Inicia la negociación con {activeChatUser.companyName}</p>
+                      <p className="text-[10px] text-slate-400 max-w-xs">
+                        Tus propuestas y mensajes se conservarán automáticamente en el dispositivo.
                       </p>
                     </div>
                   ) : (
@@ -1177,12 +1479,12 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                       >
                         <div className={`p-3 rounded-2xl text-xs max-w-[85%] leading-relaxed ${
                           msg.isMe 
-                            ? 'bg-[#00B074] text-white rounded-tr-none shadow-md' 
-                            : 'bg-slate-800/90 text-slate-100 rounded-tl-none border border-slate-700/80 shadow-xs'
+                            ? 'bg-[#00B074] text-white rounded-tr-none shadow-xs' 
+                            : 'bg-white text-[#0B192C] rounded-tl-none border border-slate-200 shadow-xs'
                         }`}>
                           {msg.text}
                         </div>
-                        <div className="flex items-center gap-1 mt-1 font-mono text-[9px] text-slate-500">
+                        <div className="flex items-center gap-1 mt-1 font-mono text-[9px] text-slate-400">
                           <span>{msg.timestamp}</span>
                           {msg.isMe && <CheckCheck className="w-3 h-3 text-[#00B074]" />}
                         </div>
@@ -1193,15 +1495,15 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                   {/* Counterparty Typing Bubble Indicator */}
                   {isCounterpartyTyping && (
                     <div className="flex flex-col items-start animate-fade-in">
-                      <div className="p-2.5 rounded-2xl text-xs bg-slate-800/90 text-slate-300 rounded-tl-none border border-slate-700/80 flex items-center gap-1.5">
-                        <span className="text-[11px] font-semibold">{activeChatUser.companyName}</span>
+                      <div className="p-2.5 rounded-2xl text-xs bg-white text-slate-700 rounded-tl-none border border-slate-200 flex items-center gap-1.5 shadow-xs">
+                        <span className="text-[11px] font-semibold text-[#0B192C]">{activeChatUser.companyName}</span>
                         <span className="flex gap-1 items-center ml-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#00B074] animate-bounce" />
                           <span className="w-1.5 h-1.5 rounded-full bg-[#00B074] animate-bounce [animation-delay:0.2s]" />
                           <span className="w-1.5 h-1.5 rounded-full bg-[#00B074] animate-bounce [animation-delay:0.4s]" />
                         </span>
                       </div>
-                      <span className="text-[9px] text-slate-500 mt-1 font-mono">Escribiendo cotización...</span>
+                      <span className="text-[9px] text-slate-400 mt-1 font-mono">Escribiendo cotización...</span>
                     </div>
                   )}
 
@@ -1210,15 +1512,15 @@ export const MobileApp: React.FC<MobileAppProps> = ({
 
                 {/* Quick Proposal Chips */}
                 <div className="space-y-1">
-                  <div className="text-[10px] text-slate-400 font-mono flex items-center justify-between">
-                    <span>⚡ Plantillas de Contraoferta Rápida:</span>
+                  <div className="text-[10px] text-slate-500 font-mono flex items-center justify-between font-semibold">
+                    <span>⚡ Contraofertas Rápidas:</span>
                   </div>
                   <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px]">
                     {quickNegotiationChips.map((chip, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleSendMessage(chip)}
-                        className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-800 text-[10px] whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+                        className="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0B192C] rounded-xl border border-slate-200 text-[10px] font-medium whitespace-nowrap shrink-0 transition-colors cursor-pointer shadow-2xs"
                       >
                         {chip}
                       </button>
@@ -1239,15 +1541,15 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                       }
                     }}
                     placeholder="Escribe tu contraoferta o pregunta comercial..."
-                    className="flex-1 px-3 py-2.5 bg-slate-900 border border-slate-800 focus:border-[#00B074] rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none transition-colors"
+                    className="flex-1 px-3 py-2.5 bg-white border border-slate-200 focus:border-[#00B074] rounded-xl text-xs text-[#0B192C] placeholder:text-slate-400 focus:outline-none transition-colors shadow-2xs"
                   />
                   <button
                     onClick={() => handleSendMessage()}
                     disabled={!chatInputText.trim()}
                     className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                       chatInputText.trim() 
-                        ? 'bg-[#00B074] hover:bg-[#009663] text-white shadow-md' 
-                        : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                        ? 'bg-[#00B074] hover:bg-[#009663] text-white shadow-xs' 
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
                   >
                     <Send className="w-3.5 h-3.5" />
@@ -1260,34 +1562,34 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                 {/* Negotiation Channels Header */}
                 <div className="flex items-center justify-between pb-1">
                   <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <h3 className="text-base font-bold text-[#0B192C] flex items-center gap-2">
                       <MessageSquare className="w-4 h-4 text-[#00B074]" />
                       <span>Canales de Negociación B2B</span>
                     </h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      Conversaciones sincronizadas y persistentes en LocalStorage
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Conversaciones sincronizadas y persistentes en el dispositivo
                     </p>
                   </div>
 
                   <button
                     onClick={handleResetToDemoChat}
                     title="Restaurar mensajes predeterminados de prueba"
-                    className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 text-[10px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                    className="px-2.5 py-1 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-mono flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                   >
-                    <RotateCcw className="w-3 h-3 text-cyan-400" />
+                    <RotateCcw className="w-3 h-3 text-[#00B074]" />
                     <span>Reset Demo</span>
                   </button>
                 </div>
 
                 {/* Storage Info Banner */}
-                <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs">
+                <div className="p-3 rounded-2xl bg-white border border-slate-200/90 flex items-center justify-between text-xs shadow-xs">
                   <div className="flex items-center gap-2">
                     <Database className="w-4 h-4 text-[#00B074]" />
-                    <span className="text-[11px] text-slate-300">
-                      Estado de almacenamiento: <strong className="text-emerald-400 font-mono">Activo (localStorage)</strong>
+                    <span className="text-[11px] text-slate-600">
+                      Estado de almacenamiento: <strong className="text-[#008A5B] font-mono font-bold">Activo</strong>
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">
+                  <span className="text-[10px] font-mono text-slate-500">
                     {Object.values(chatMessages).reduce((acc, m) => acc + m.length, 0)} msgs guardados
                   </span>
                 </div>
@@ -1302,29 +1604,29 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                       <div
                         key={u.id}
                         onClick={() => setActiveChatUser(u)}
-                        className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-[#00B074]/50 cursor-pointer transition-all hover:bg-slate-900/95 shadow-sm group"
+                        className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-[#00B074] cursor-pointer transition-all shadow-xs hover:shadow-md group"
                       >
                         <div
-                          style={{ backgroundColor: u.avatarBgColor || '#0ea5e9' }}
+                          style={{ backgroundColor: u.avatarBgColor || '#00B074' }}
                           className="w-10 h-10 rounded-xl text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs relative"
                         >
                           {u.avatarText || u.fullName.substring(0, 2)}
-                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#00B074] border-2 border-white absolute -bottom-0.5 -right-0.5" />
                         </div>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="font-bold text-xs text-white truncate group-hover:text-[#00B074] transition-colors">
+                            <span className="font-bold text-xs text-[#0B192C] truncate group-hover:text-[#00B074] transition-colors">
                               {u.companyName}
                             </span>
                             {lastMsg && (
-                              <span className="text-[10px] text-slate-500 font-mono shrink-0">
+                              <span className="text-[10px] text-slate-400 font-mono shrink-0">
                                 {lastMsg.timestamp}
                               </span>
                             )}
                           </div>
 
-                          <div className="text-[11px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
+                          <div className="text-[11px] text-slate-500 truncate flex items-center gap-1.5 mt-0.5">
                             <span>{u.fullName}</span>
                             <span>·</span>
                             <span>{u.countryFlag} {u.country}</span>
@@ -1333,11 +1635,11 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                           {/* Last message preview */}
                           <div className="text-[11px] truncate mt-1">
                             {lastMsg ? (
-                              <span className={lastMsg.isMe ? 'text-[#00B074]/90' : 'text-slate-300'}>
+                              <span className={lastMsg.isMe ? 'text-[#008A5B] font-medium' : 'text-slate-600'}>
                                 {lastMsg.isMe ? 'Tú: ' : ''}{lastMsg.text}
                               </span>
                             ) : (
-                              <span className="text-slate-600 italic">Sin mensajes previos · Toca para negociar</span>
+                              <span className="text-slate-400 italic">Sin mensajes previos · Toca para negociar</span>
                             )}
                           </div>
                         </div>
@@ -1345,11 +1647,11 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                         {/* Thread message count pill */}
                         <div className="flex items-center gap-1 shrink-0">
                           {thread.length > 0 && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#00B074]/20 border border-[#00B074]/30 text-[#00B074] font-mono text-[10px] font-bold">
+                            <span className="px-2 py-0.5 rounded-full bg-[#E6F7F0] border border-[#00B074]/30 text-[#008A5B] font-mono text-[10px] font-bold">
                               {thread.length}
                             </span>
                           )}
-                          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white transition-colors" />
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#00B074] transition-colors" />
                         </div>
                       </div>
                     );
@@ -1372,62 +1674,140 @@ export const MobileApp: React.FC<MobileAppProps> = ({
         )}
 
         {/* ======================================================== */}
-        {/* TAB 5: CARTERA Y MENÚ EMPRESARIAL                         */}
+        {/* TAB 5: CARTERA Y MENÚ EMPRESARIAL (ONLY VENDORS & CUSTOMERS) */}
         {/* ======================================================== */}
         {activeTab === 'menu' && (
           <div className="p-4 space-y-4">
             {/* User Business Card */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-md">
-                  {currentUser.avatarText || 'US'}
+                <div 
+                  style={{ backgroundColor: currentUser.avatarBgColor || '#00B074' }}
+                  className="w-13 h-13 rounded-2xl text-white font-black flex items-center justify-center text-base shadow-sm shrink-0"
+                >
+                  {currentUser.avatarText || 'VQ'}
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">{currentUser.companyName}</h4>
-                  <span className="text-xs text-slate-400">{currentUser.fullName} · {currentUser.countryFlag} {currentUser.country}</span>
-                  <div className="text-[10px] text-emerald-400 font-mono mt-0.5">✓ Empresa Verificada KYC</div>
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="text-base font-bold text-[#0B192C]">{currentUser.companyName}</h4>
+                    <CheckCircle2 className="w-4 h-4 text-[#00B074]" />
+                  </div>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {currentUser.fullName} · {currentUser.countryFlag} {currentUser.country}
+                  </span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                      activeRole === 'vendor'
+                        ? 'bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30'
+                        : 'bg-blue-50 text-blue-700 border border-blue-200'
+                    }`}>
+                      {activeRole === 'vendor' ? 'PROVEEDOR (VENDOR)' : 'COMPRADOR (CUSTOMER)'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">KYC Verificado</span>
+                  </div>
                 </div>
               </div>
 
               <button
                 onClick={() => setSelectedProfileUser(currentUser)}
-                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs cursor-pointer"
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-[#0B192C] border border-slate-200 rounded-xl text-xs font-bold cursor-pointer transition-colors"
               >
-                Ver
+                Ver Ficha
               </button>
             </div>
 
-            {/* Quick Stats Grid with Performance Card */}
-            <div className="grid grid-cols-3 gap-2">
-              <div 
-                onClick={() => setActiveTab('performance')}
-                className="bg-slate-900 border border-emerald-900/40 rounded-2xl p-3 cursor-pointer hover:border-[#00B074]/50 transition-colors"
-              >
-                <Activity className="w-4 h-4 text-[#00B074] mb-1.5" />
-                <h5 className="text-[11px] font-bold text-white">Performance</h5>
-                <span className="text-[10px] text-emerald-400 font-mono font-bold">+$386.4k ahorro</span>
+            {/* Quick Role Switcher Banner */}
+            <div className="p-3.5 bg-gradient-to-r from-slate-50 to-emerald-50/40 border border-slate-200 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                  activeRole === 'vendor' ? 'bg-[#00B074] text-white' : 'bg-blue-600 text-white'
+                }`}>
+                  {activeRole === 'vendor' ? <Store className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-[#0B192C] block">
+                    Modo actual: {activeRole === 'vendor' ? 'Proveedor (Vendor)' : 'Comprador (Customer)'}
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    {activeRole === 'vendor' 
+                      ? 'Puedes publicar lotes y recibir pedidos de compradores.'
+                      : 'Puedes explorar catálogos, cotizar y chatear con vendedores.'}
+                  </span>
+                </div>
               </div>
 
+              <button
+                onClick={handleToggleActiveRole}
+                className="px-3 py-1.5 bg-[#0B192C] hover:bg-[#1a2f4c] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs shrink-0"
+              >
+                Alternar
+              </button>
+            </div>
+
+            {/* Business Specs Card (Role Specific) */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3 shadow-xs">
+              <h5 className="text-xs font-bold text-[#0B192C] uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                <Building2 className="w-4 h-4 text-[#00B074]" />
+                <span>Datos Operativos B2B</span>
+              </h5>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Identificación Fiscal:</span>
+                  <span className="font-mono font-semibold text-[#0B192C]">{currentUser.taxId || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Sede / Ciudad:</span>
+                  <span className="font-semibold text-[#0B192C]">{currentUser.city || 'Miami, FL'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">WhatsApp Directo:</span>
+                  <span className="font-mono text-emerald-700 font-bold">{currentUser.phoneWhatsApp}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">
+                    {activeRole === 'vendor' ? 'Capacidad Mensual:' : 'Presupuesto Compra:'}
+                  </span>
+                  <span className="font-mono font-bold text-[#00B074]">
+                    {activeRole === 'vendor' 
+                      ? (currentUser.vendorSupplyCapacity || '>$500,000 USD')
+                      : (currentUser.customerMonthlyBudget || '$50,000 - $200,000 USD')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-3 gap-2">
               <div 
                 onClick={() => setActiveTab('feed')}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-3 cursor-pointer hover:border-slate-700 transition-colors"
+                className="bg-white border border-slate-200 rounded-2xl p-3.5 cursor-pointer hover:border-[#00B074] transition-all shadow-xs"
               >
-                <Bookmark className="w-4 h-4 text-cyan-400 mb-1.5" />
-                <h5 className="text-[11px] font-bold text-white">Guardadas</h5>
-                <span className="text-[10px] text-slate-400 font-mono">{savedOffers.length} lotes</span>
+                <Bookmark className="w-4 h-4 text-[#00B074] mb-1.5" />
+                <h5 className="text-[11px] font-bold text-[#0B192C]">Guardados</h5>
+                <span className="text-[10px] text-slate-500 font-mono font-medium">{savedOffers.length} lotes</span>
               </div>
 
               <div 
                 onClick={() => setShowPrivacyModal(true)}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-3 cursor-pointer hover:border-slate-700 transition-colors"
+                className="bg-white border border-slate-200 rounded-2xl p-3.5 cursor-pointer hover:border-[#00B074] transition-all shadow-xs"
               >
-                <Lock className="w-4 h-4 text-emerald-400 mb-1.5" />
-                <h5 className="text-[11px] font-bold text-white">Privacidad</h5>
-                <span className="text-[10px] text-slate-400 font-mono">Protegida</span>
+                <Lock className="w-4 h-4 text-emerald-600 mb-1.5" />
+                <h5 className="text-[11px] font-bold text-[#0B192C]">Privacidad</h5>
+                <span className="text-[10px] text-slate-500 font-mono">Protegida</span>
+              </div>
+
+              <div 
+                onClick={() => setShowQrModal(true)}
+                className="bg-white border border-slate-200 rounded-2xl p-3.5 cursor-pointer hover:border-[#00B074] transition-all shadow-xs"
+              >
+                <QrCode className="w-4 h-4 text-slate-700 mb-1.5" />
+                <h5 className="text-[11px] font-bold text-[#0B192C]">Compartir</h5>
+                <span className="text-[10px] text-slate-500 font-mono">Código QR</span>
               </div>
             </div>
 
-            {/* SECCIÓN DE ALERTAS DE PRECIO PERSONALIZADAS (PUSH & EMAIL) */}
+            {/* SECCIÓN DE ALERTAS DE PRECIO PERSONALIZADAS */}
             <PriceAlertsSection 
               currentUser={currentUser}
               livePrices={livePrices}
@@ -1440,84 +1820,40 @@ export const MobileApp: React.FC<MobileAppProps> = ({
               onForceRefreshCache={handleForceRefreshCache}
             />
 
-            {/* Navigation Actions List */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl divide-y divide-slate-800 text-xs font-medium text-slate-200">
-              <button
-                onClick={onSwitchToWebApp}
-                className="w-full p-3.5 flex items-center justify-between text-cyan-400 hover:bg-slate-800/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <Globe className="w-4 h-4 text-cyan-400" />
-                  <span className="font-bold">Acceder a la App Web (Portal Desktop)</span>
-                </div>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={onOpenAdminPanel}
-                className="w-full p-3.5 flex items-center justify-between hover:bg-slate-800/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className="w-4 h-4 text-purple-400" />
-                  <span className="font-bold text-purple-300">Panel del Administrador</span>
-                </div>
-                <span className="text-[10px] font-mono bg-purple-950 text-purple-300 border border-purple-800 px-2 py-0.5 rounded">
-                  ROOT
-                </span>
-              </button>
-
+            {/* Navigation Actions List (Pure Customer/Vendor Options) */}
+            <div className="bg-white border border-slate-200 rounded-2xl divide-y divide-slate-100 text-xs font-medium text-slate-700 shadow-xs">
               <button
                 onClick={onOpenAuthModal}
-                className="w-full p-3.5 flex items-center justify-between hover:bg-slate-800/50 transition-colors"
+                className="w-full p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <Building2 className="w-4 h-4 text-slate-400" />
-                  <span>Registrar Empresa / Cambiar Cuenta</span>
+                  <Building2 className="w-4 h-4 text-slate-500" />
+                  <span className="font-semibold text-[#0B192C]">Registrar Empresa o Cambiar Cuenta</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-500" />
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </button>
 
               <button
                 onClick={() => setShowQrModal(true)}
-                className="w-full p-3.5 flex items-center justify-between hover:bg-slate-800/50 transition-colors"
+                className="w-full p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <QrCode className="w-4 h-4 text-slate-400" />
-                  <span>Scan and Share Profile (QR)</span>
+                  <QrCode className="w-4 h-4 text-slate-500" />
+                  <span className="font-semibold text-[#0B192C]">Mi Credencial Mayorista B2B (QR)</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-500" />
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </button>
 
-              {/* Subir a TestFlight & Producción */}
-              <button
-                onClick={() => setShowDeployModal(true)}
-                className="w-full p-3.5 flex items-center justify-between bg-gradient-to-r from-[#00B074]/15 to-blue-500/10 hover:from-[#00B074]/25 hover:to-blue-500/20 border-t border-slate-800 transition-all cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#00B074]/20 border border-[#00B074]/40 flex items-center justify-center text-[#00B074] shrink-0">
-                    <Rocket className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-xs sm:text-sm">Subir a TestFlight & Producción</span>
-                      <span className="px-1.5 py-0.2 bg-[#00B074] text-black font-extrabold text-[9px] rounded-full">GUÍA</span>
-                    </div>
-                    <span className="text-[11px] text-slate-400">Paso a paso con Codemagic, GitHub y Vercel</span>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-emerald-400" />
-              </button>
-
-              {/* Cerrar Sesión / Salir al Login o Registro */}
+              {/* Cerrar Sesión */}
               <button
                 onClick={onLogout}
-                className="w-full p-3.5 flex items-center justify-between text-rose-400 hover:bg-rose-500/10 border-t border-slate-800 transition-colors cursor-pointer"
+                className="w-full p-3.5 flex items-center justify-between text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <LogOut className="w-4 h-4 text-rose-400" />
+                  <LogOut className="w-4 h-4 text-rose-500" />
                   <span className="font-bold">Cerrar Sesión ({currentUser.username})</span>
                 </div>
-                <span className="text-[10px] text-rose-300 font-mono bg-rose-500/20 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] text-rose-600 font-mono bg-rose-100 px-2.5 py-0.5 rounded-full font-bold">
                   SALIR
                 </span>
               </button>
@@ -1528,29 +1864,42 @@ export const MobileApp: React.FC<MobileAppProps> = ({
       </div>
 
       {/* ======================================================== */}
-      {/* 3. BOTTOM FLOATING DOCK (6 PESTAÑAS VORTEQ B2B)          */}
+      {/* FLOATING ACTION BUTTON (+ PUBLICAR) - FOR VENDORS        */}
       {/* ======================================================== */}
-      {/* STATIC NATIVE IOS BOTTOM BAR */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#09111e]/98 backdrop-blur-2xl border-t border-slate-700/80 px-2 sm:px-6 pt-3 pb-[max(env(safe-area-inset-bottom,0px),32px)] flex items-center justify-around shadow-[0_-12px_40px_rgba(0,0,0,0.85)]">
+      {activeRole === 'vendor' && (
+        <button
+          onClick={onOpenCreateOffer}
+          className="fixed bottom-[calc(max(env(safe-area-inset-bottom,0px),24px)+66px)] right-4 z-40 bg-[#00B074] hover:bg-[#009663] active:scale-95 text-white font-bold px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 text-xs transition-all cursor-pointer border border-[#00B074]/50 shadow-[#00B074]/30"
+          title="Publicar nuevo lote mayorista"
+        >
+          <Plus className="w-4 h-4 text-white" />
+          <span>+ Publicar Lote</span>
+        </button>
+      )}
+
+      {/* ======================================================== */}
+      {/* STATIC NATIVE IOS BOTTOM BAR (ALWAYS VISIBLE & PINNED)   */}
+      {/* ======================================================== */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-2xl border-t border-slate-200/90 px-2 sm:px-6 pt-2 pb-[max(env(safe-area-inset-bottom,0px),24px)] flex items-center justify-around shadow-[0_-4px_24px_rgba(11,25,44,0.06)]">
         <button
           onClick={() => setActiveTab('feed')}
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-all cursor-pointer group ${
             activeTab === 'feed' ? 'scale-105' : ''
           }`}
         >
-          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-1 transition-colors ${
+          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-0.5 transition-colors ${
             activeTab === 'feed' 
-              ? 'bg-[#00B074]/20 text-[#00B074]' 
-              : 'text-slate-400 group-hover:text-slate-200'
+              ? 'bg-[#E6F7F0] text-[#008A5B]' 
+              : 'text-slate-400 group-hover:text-slate-600'
           }`}>
             <Boxes className="w-5 h-5" />
           </div>
           <span className={`text-[11px] tracking-tight ${
             activeTab === 'feed' 
-              ? 'text-[#00B074] font-bold' 
-              : 'text-slate-400 group-hover:text-slate-200 font-medium'
+              ? 'text-[#008A5B] font-bold' 
+              : 'text-slate-500 group-hover:text-slate-700 font-medium'
           }`}>
-            Explorar
+            Mercado
           </span>
         </button>
 
@@ -1560,17 +1909,17 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             activeTab === 'precios' ? 'scale-105' : ''
           }`}
         >
-          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-1 transition-colors ${
+          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-0.5 transition-colors ${
             activeTab === 'precios' 
-              ? 'bg-[#00B074]/20 text-[#00B074]' 
-              : 'text-slate-400 group-hover:text-slate-200'
+              ? 'bg-[#E6F7F0] text-[#008A5B]' 
+              : 'text-slate-400 group-hover:text-slate-600'
           }`}>
             <TrendingUp className="w-5 h-5" />
           </div>
           <span className={`text-[11px] tracking-tight ${
             activeTab === 'precios' 
-              ? 'text-[#00B074] font-bold' 
-              : 'text-slate-400 group-hover:text-slate-200 font-medium'
+              ? 'text-[#008A5B] font-bold' 
+              : 'text-slate-500 group-hover:text-slate-700 font-medium'
           }`}>
             Precios Spot
           </span>
@@ -1582,10 +1931,10 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             activeTab === 'chat' ? 'scale-105' : ''
           }`}
         >
-          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-1 transition-colors relative ${
+          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-0.5 transition-colors relative ${
             activeTab === 'chat' 
-              ? 'bg-[#00B074]/20 text-[#00B074]' 
-              : 'text-slate-400 group-hover:text-slate-200'
+              ? 'bg-[#E6F7F0] text-[#008A5B]' 
+              : 'text-slate-400 group-hover:text-slate-600'
           }`}>
             <MessageSquare className="w-5 h-5" />
             {Object.values(chatMessages).flat().length > 0 && (
@@ -1596,8 +1945,8 @@ export const MobileApp: React.FC<MobileAppProps> = ({
           </div>
           <span className={`text-[11px] tracking-tight ${
             activeTab === 'chat' 
-              ? 'text-[#00B074] font-bold' 
-              : 'text-slate-400 group-hover:text-slate-200 font-medium'
+              ? 'text-[#008A5B] font-bold' 
+              : 'text-slate-500 group-hover:text-slate-700 font-medium'
           }`}>
             Chat B2B
           </span>
@@ -1609,17 +1958,17 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             activeTab === 'menu' ? 'scale-105' : ''
           }`}
         >
-          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-1 transition-colors ${
+          <div className={`px-4 py-1 rounded-full flex items-center justify-center mb-0.5 transition-colors ${
             activeTab === 'menu' 
-              ? 'bg-[#00B074]/20 text-[#00B074]' 
-              : 'text-slate-400 group-hover:text-slate-200'
+              ? 'bg-[#E6F7F0] text-[#008A5B]' 
+              : 'text-slate-400 group-hover:text-slate-600'
           }`}>
-            <Settings className="w-5 h-5" />
+            <Building2 className="w-5 h-5" />
           </div>
           <span className={`text-[11px] tracking-tight ${
             activeTab === 'menu' 
-              ? 'text-[#00B074] font-bold' 
-              : 'text-slate-400 group-hover:text-slate-200 font-medium'
+              ? 'text-[#008A5B] font-bold' 
+              : 'text-slate-500 group-hover:text-slate-700 font-medium'
           }`}>
             Mi Cuenta
           </span>
@@ -1630,45 +1979,45 @@ export const MobileApp: React.FC<MobileAppProps> = ({
       {/* MODAL 1: PRIVACY MODAL                                   */}
       {/* ======================================================== */}
       {showPrivacyModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 p-0 sm:p-4 backdrop-blur-xs">
-          <div className="bg-[#0f172a] border border-slate-800 text-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-xs">
+          <div className="bg-white border border-slate-200 text-[#0B192C] rounded-t-3xl sm:rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl relative">
             <button
               onClick={() => setShowPrivacyModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-start justify-between pt-1">
               <div className="max-w-[70%]">
-                <h3 className="text-lg font-bold text-cyan-400 leading-tight">
+                <h3 className="text-lg font-bold text-[#0B192C] leading-tight">
                   Configuración de Privacidad
                 </h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   Decide qué datos ven las demás empresas mayoristas.
                 </p>
               </div>
 
-              <div className="w-12 h-12 rounded-2xl bg-cyan-950 border border-cyan-800 flex items-center justify-center text-cyan-400">
+              <div className="w-12 h-12 rounded-2xl bg-[#E6F7F0] border border-[#00B074]/30 flex items-center justify-center text-[#008A5B]">
                 <Lock className="w-6 h-6" />
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-2">
               <div>
-                <span className="text-xs font-bold text-white block">Ocultar número de WhatsApp</span>
-                <span className="text-[11px] text-slate-400 block max-w-[200px]">
+                <span className="text-xs font-bold text-[#0B192C] block">Ocultar número de WhatsApp</span>
+                <span className="text-[11px] text-slate-500 block max-w-[200px]">
                   Solo podrán comunicarse mediante el chat interno.
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setHidePhoneState(!hidePhoneState)}
-                className={`w-12 h-6 rounded-full transition-colors relative p-0.5 ${
-                  hidePhoneState ? 'bg-cyan-500' : 'bg-slate-700'
+                className={`w-12 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${
+                  hidePhoneState ? 'bg-[#00B074]' : 'bg-slate-300'
                 }`}
               >
-                <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                <div className={`w-5 h-5 rounded-full bg-white shadow-xs transition-transform ${
                   hidePhoneState ? 'translate-x-6' : 'translate-x-0'
                 }`} />
               </button>
@@ -1676,19 +2025,19 @@ export const MobileApp: React.FC<MobileAppProps> = ({
 
             <div className="flex items-center justify-between pt-2">
               <div>
-                <span className="text-xs font-bold text-white block">Ocultar ofertas archivadas</span>
-                <span className="text-[11px] text-slate-400 block max-w-[200px]">
+                <span className="text-xs font-bold text-[#0B192C] block">Ocultar ofertas archivadas</span>
+                <span className="text-[11px] text-slate-500 block max-w-[200px]">
                   Tus transacciones pasadas quedarán privadas.
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setHideArchivedState(!hideArchivedState)}
-                className={`w-12 h-6 rounded-full transition-colors relative p-0.5 ${
-                  hideArchivedState ? 'bg-cyan-500' : 'bg-slate-700'
+                className={`w-12 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${
+                  hideArchivedState ? 'bg-[#00B074]' : 'bg-slate-300'
                 }`}
               >
-                <div className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                <div className={`w-5 h-5 rounded-full bg-white shadow-xs transition-transform ${
                   hideArchivedState ? 'translate-x-6' : 'translate-x-0'
                 }`} />
               </button>
@@ -1697,7 +2046,7 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             <div className="pt-3">
               <button
                 onClick={handleSavePrivacy}
-                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs transition-colors"
+                className="w-full py-2.5 bg-[#00B074] hover:bg-[#009663] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-xs"
               >
                 Guardar Preferencias
               </button>
@@ -1710,43 +2059,46 @@ export const MobileApp: React.FC<MobileAppProps> = ({
       {/* MODAL 2: USER PROFILE VIEW                               */}
       {/* ======================================================== */}
       {selectedProfileUser && (
-        <div className="fixed inset-0 z-50 bg-[#0b0f19] text-white flex flex-col overflow-y-auto">
-          <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-[#0b0f19] z-10">
+        <div className="fixed inset-0 z-50 bg-[#F8FAFC] text-[#0B192C] flex flex-col overflow-y-auto">
+          <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10 pt-safe">
             <button
               onClick={() => setSelectedProfileUser(null)}
-              className="p-1 rounded-full text-slate-300 hover:text-white"
+              className="p-1 rounded-full text-slate-600 hover:text-[#0B192C] font-semibold text-xs flex items-center gap-1 cursor-pointer"
             >
               ← Volver
             </button>
-            <span className="text-sm font-bold text-white">{selectedProfileUser.username}</span>
+            <span className="text-sm font-bold text-[#0B192C]">{selectedProfileUser.username}</span>
             <div className="flex items-center gap-2 text-slate-400">
-              <Share2 className="w-4 h-4 cursor-pointer" />
+              <Share2 className="w-4 h-4 cursor-pointer hover:text-slate-700" />
             </div>
           </div>
 
           <div className="p-4 space-y-4 flex-1">
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-lg text-white shrink-0">
+            <div className="flex items-start gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+              <div 
+                style={{ backgroundColor: selectedProfileUser.avatarBgColor || '#00B074' }}
+                className="w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-lg text-white shrink-0 shadow-sm"
+              >
                 {selectedProfileUser.avatarText || 'AU'}
               </div>
 
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-base font-bold text-white">{selectedProfileUser.fullName}</h3>
+                  <h3 className="text-base font-bold text-[#0B192C]">{selectedProfileUser.fullName}</h3>
                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold ${
                     selectedProfileUser.accountType === 'vendor'
-                      ? 'bg-[#00B074]/20 text-[#00B074] border border-[#00B074]/40'
-                      : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+                      ? 'bg-[#E6F7F0] text-[#008A5B] border border-[#00B074]/30'
+                      : 'bg-blue-50 text-blue-700 border border-blue-200'
                   }`}>
                     {selectedProfileUser.accountType === 'vendor' ? 'VENDOR (Proveedor)' : 'CUSTOMER (Comprador)'}
                   </span>
                 </div>
-                <div className="text-xs text-slate-300 font-semibold">{selectedProfileUser.companyName}</div>
-                <div className="text-xs text-slate-400">{selectedProfileUser.country} · {selectedProfileUser.countryFlag} · {selectedProfileUser.city || 'Almacén Central'}</div>
-                <div className="flex items-center gap-2 text-xs text-slate-300 mt-1 font-mono">
+                <div className="text-xs text-slate-700 font-semibold">{selectedProfileUser.companyName}</div>
+                <div className="text-xs text-slate-500">{selectedProfileUser.country} · {selectedProfileUser.countryFlag} · {selectedProfileUser.city || 'Almacén Central'}</div>
+                <div className="flex items-center gap-2 text-xs text-slate-600 mt-1 font-mono">
                   <span>{selectedProfileUser.phoneWhatsApp}</span>
                   {selectedProfileUser.taxId && (
-                    <span className="text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded font-mono">
+                    <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded font-mono border border-slate-200">
                       ID Fiscal: {selectedProfileUser.taxId}
                     </span>
                   )}
@@ -1755,44 +2107,44 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             </div>
 
             {/* Role Specific Details Card */}
-            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs space-y-2">
-              <div className="font-bold text-slate-200 flex items-center justify-between text-[11px] uppercase tracking-wider">
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 text-xs space-y-3 shadow-xs">
+              <div className="font-bold text-slate-600 flex items-center justify-between text-[11px] uppercase tracking-wider border-b border-slate-100 pb-2">
                 <span>Perfil Comercial Verificado</span>
-                <span className="text-emerald-400 font-mono text-[10px]">KYC APROBADO</span>
+                <span className="text-[#008A5B] font-mono text-[10px] bg-[#E6F7F0] px-2 py-0.5 rounded-full font-bold">KYC APROBADO</span>
               </div>
 
               {selectedProfileUser.accountType === 'vendor' ? (
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
-                    <span className="text-slate-400 block text-[10px]">Tipo de Vendedor</span>
-                    <span className="text-white font-semibold">{selectedProfileUser.vendorType || 'Distribuidor Mayorista'}</span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400 block text-[10px] font-bold">Tipo de Vendedor</span>
+                    <span className="text-[#0B192C] font-semibold">{selectedProfileUser.vendorType || 'Distribuidor Mayorista'}</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
-                    <span className="text-slate-400 block text-[10px]">Capacidad de Stock</span>
-                    <span className="text-[#00B074] font-semibold">{selectedProfileUser.vendorSupplyCapacity || '$50,000 - $250,000 USD'}</span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400 block text-[10px] font-bold">Capacidad de Stock</span>
+                    <span className="text-[#008A5B] font-semibold">{selectedProfileUser.vendorSupplyCapacity || '$50,000 - $250,000 USD'}</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
-                    <span className="text-slate-400 block text-[10px]">Pedido Mínimo (MOQ)</span>
-                    <span className="text-white font-semibold">{selectedProfileUser.vendorMoq || '10 unidades'}</span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400 block text-[10px] font-bold">Pedido Mínimo (MOQ)</span>
+                    <span className="text-[#0B192C] font-semibold">{selectedProfileUser.vendorMoq || '10 unidades'}</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
-                    <span className="text-slate-400 block text-[10px]">Garantía Técnica</span>
-                    <span className="text-emerald-300 font-semibold">{selectedProfileUser.vendorWarrantyTerms || '12 Meses Oficial'}</span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400 block text-[10px] font-bold">Garantía Técnica</span>
+                    <span className="text-[#008A5B] font-semibold">{selectedProfileUser.vendorWarrantyTerms || '12 Meses Oficial'}</span>
                   </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
-                    <span className="text-slate-400 block text-[10px]">Tipo de Negocio</span>
-                    <span className="text-white font-semibold">{selectedProfileUser.customerBusinessType || 'Tienda Retail'}</span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400 block text-[10px] font-bold">Tipo de Negocio</span>
+                    <span className="text-[#0B192C] font-semibold">{selectedProfileUser.customerBusinessType || 'Tienda Retail'}</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
-                    <span className="text-slate-400 block text-[10px]">Presupuesto Mensual</span>
-                    <span className="text-cyan-400 font-semibold">{selectedProfileUser.customerMonthlyBudget || '$20K - $100K USD'}</span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-slate-400 block text-[10px] font-bold">Presupuesto Mensual</span>
+                    <span className="text-blue-700 font-semibold">{selectedProfileUser.customerMonthlyBudget || '$20K - $100K USD'}</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-800/60 border border-slate-700/50 col-span-2">
-                    <span className="text-slate-400 block text-[10px]">Métodos de Pago Preferidos</span>
-                    <span className="text-white font-semibold">
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 col-span-2">
+                    <span className="text-slate-400 block text-[10px] font-bold">Métodos de Pago Preferidos</span>
+                    <span className="text-[#0B192C] font-semibold">
                       {selectedProfileUser.customerPaymentMethods?.join(' · ') || 'Transferencia SWIFT / USDT'}
                     </span>
                   </div>
@@ -1800,29 +2152,29 @@ export const MobileApp: React.FC<MobileAppProps> = ({
               )}
 
               {selectedProfileUser.address && (
-                <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 flex items-center gap-1">
-                  <span className="font-semibold text-slate-300">Almacén:</span>
+                <div className="text-[10px] text-slate-500 pt-1 border-t border-slate-100 flex items-center gap-1">
+                  <span className="font-semibold text-slate-600">Almacén:</span>
                   <span>{selectedProfileUser.address}</span>
                 </div>
               )}
             </div>
 
-            <div className="grid grid-cols-4 gap-2 text-center py-2 border-y border-slate-800 font-mono">
+            <div className="grid grid-cols-4 gap-2 text-center py-3 bg-white border border-slate-200 rounded-2xl font-mono shadow-xs">
               <div>
-                <span className="text-base font-black text-white">{selectedProfileUser.offersCount}</span>
-                <span className="text-[10px] text-slate-400 block font-sans">Ofertas</span>
+                <span className="text-base font-black text-[#0B192C]">{selectedProfileUser.offersCount}</span>
+                <span className="text-[10px] text-slate-500 block font-sans">Ofertas</span>
               </div>
               <div>
-                <span className="text-base font-black text-white">{selectedProfileUser.subscribersCount}</span>
-                <span className="text-[10px] text-slate-400 block font-sans">Seguidores</span>
+                <span className="text-base font-black text-[#0B192C]">{selectedProfileUser.subscribersCount}</span>
+                <span className="text-[10px] text-slate-500 block font-sans">Seguidores</span>
               </div>
               <div>
-                <span className="text-base font-black text-white">{selectedProfileUser.followingCount}</span>
-                <span className="text-[10px] text-slate-400 block font-sans">Siguiendo</span>
+                <span className="text-base font-black text-[#0B192C]">{selectedProfileUser.followingCount}</span>
+                <span className="text-[10px] text-slate-500 block font-sans">Siguiendo</span>
               </div>
               <div>
-                <span className="text-base font-black text-white">{selectedProfileUser.chatsCount}</span>
-                <span className="text-[10px] text-slate-400 block font-sans">Chats</span>
+                <span className="text-base font-black text-[#0B192C]">{selectedProfileUser.chatsCount}</span>
+                <span className="text-[10px] text-slate-500 block font-sans">Chats</span>
               </div>
             </div>
 
@@ -1833,7 +2185,7 @@ export const MobileApp: React.FC<MobileAppProps> = ({
                   setSelectedProfileUser(null);
                   onLogout?.();
                 }}
-                className="w-full py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Cerrar Sesión de {currentUser.username}</span>
@@ -1841,14 +2193,14 @@ export const MobileApp: React.FC<MobileAppProps> = ({
             )}
 
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-300 uppercase">Ofertas Activas de la Empresa</h4>
+              <h4 className="text-xs font-bold text-slate-600 uppercase">Ofertas Activas de la Empresa</h4>
               {offers.filter(o => o.username === selectedProfileUser.username).map(o => (
-                <div key={o.id} className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-                  <div className="flex justify-between font-bold text-white">
+                <div key={o.id} className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs shadow-xs">
+                  <div className="flex justify-between font-bold text-[#0B192C]">
                     <span>{o.title}</span>
-                    <span className="text-cyan-400 font-mono">${o.priceUSD}</span>
+                    <span className="text-[#008A5B] font-mono">${o.priceUSD} USD</span>
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-1 font-mono">{o.notes}</div>
+                  <div className="text-[11px] text-slate-500 mt-1 font-sans">{o.notes}</div>
                 </div>
               ))}
             </div>
@@ -1860,18 +2212,18 @@ export const MobileApp: React.FC<MobileAppProps> = ({
       {/* MODAL 3: QR CODE SHARE                                   */}
       {/* ======================================================== */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xs">
-          <div className="bg-[#0f172a] border border-slate-800 text-white rounded-3xl max-w-xs w-full p-6 text-center space-y-4">
-            <h4 className="text-base font-bold text-white">Código QR de la Empresa</h4>
-            <div className="w-48 h-48 bg-white rounded-2xl mx-auto p-3 flex items-center justify-center">
-              <QrCode className="w-40 h-40 text-slate-900" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="bg-white border border-slate-200 text-[#0B192C] rounded-3xl max-w-xs w-full p-6 text-center space-y-4 shadow-2xl">
+            <h4 className="text-base font-bold text-[#0B192C]">Código QR de la Empresa</h4>
+            <div className="w-48 h-48 bg-slate-50 rounded-2xl mx-auto p-3 flex items-center justify-center border border-slate-200">
+              <QrCode className="w-40 h-40 text-[#0B192C]" />
             </div>
-            <div className="text-xs text-slate-400 font-mono">
+            <div className="text-xs text-slate-500 font-mono">
               {currentUser.username} · {currentUser.companyName}
             </div>
             <button
               onClick={() => setShowQrModal(false)}
-              className="w-full py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold"
+              className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-[#0B192C] rounded-xl text-xs font-bold cursor-pointer transition-colors"
             >
               Cerrar
             </button>
@@ -1883,20 +2235,20 @@ export const MobileApp: React.FC<MobileAppProps> = ({
       {/* MODAL 4: NOTIFICACIONES                                  */}
       {/* ======================================================== */}
       {showNotificationsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xs">
-          <div className="bg-[#0f172a] border border-slate-800 text-white rounded-3xl max-w-sm w-full p-5 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h4 className="text-sm font-bold text-white">Notificaciones Comerciales</h4>
-              <button onClick={() => setShowNotificationsModal(false)} className="text-slate-400 hover:text-white">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="bg-white border border-slate-200 text-[#0B192C] rounded-3xl max-w-sm w-full p-5 space-y-3 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h4 className="text-sm font-bold text-[#0B192C]">Notificaciones Comerciales</h4>
+              <button onClick={() => setShowNotificationsModal(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">✕</button>
             </div>
             <div className="space-y-2 text-xs">
-              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-                <div className="font-bold text-cyan-400">Nueva variación de precio spot</div>
-                <div className="text-slate-300">iPhone 16 Pro Max subió +$13.00 USD en Miami EXW.</div>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="font-bold text-[#0B192C]">Nueva variación de precio spot</div>
+                <div className="text-slate-500 mt-0.5">iPhone 16 Pro Max subió +$13.00 USD en Miami EXW.</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-                <div className="font-bold text-emerald-400">Verificación KYC aprobada</div>
-                <div className="text-slate-300">Tu empresa cuenta con credenciales para cerrar contratos en custodia.</div>
+              <div className="p-3 rounded-xl bg-[#E6F7F0] border border-[#00B074]/30">
+                <div className="font-bold text-[#008A5B]">Verificación KYC aprobada</div>
+                <div className="text-slate-600 mt-0.5">Tu empresa cuenta con credenciales para cerrar contratos en custodia.</div>
               </div>
             </div>
           </div>
@@ -1921,13 +2273,6 @@ export const MobileApp: React.FC<MobileAppProps> = ({
         users={users}
       />
 
-      {/* ======================================================== */}
-      {/* MODAL 6: GUÍA DE DESPLIEGUE TESTFLIGHT Y WEB             */}
-      {/* ======================================================== */}
-      <DeploymentGuideModal
-        isOpen={showDeployModal}
-        onClose={() => setShowDeployModal(false)}
-      />
 
     </div>
   );

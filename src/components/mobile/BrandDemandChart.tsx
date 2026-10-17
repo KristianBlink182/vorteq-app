@@ -67,32 +67,32 @@ export const BrandDemandChart: React.FC = () => {
 
   return (
     <div className="px-4">
-      <div className="bg-gradient-to-br from-[#0B192C] via-[#091424] to-[#060D18] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
         {/* Header with Title and Mode Switcher */}
         <div className="flex items-start justify-between gap-2">
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="p-1 rounded-lg bg-[#00B074]/15 border border-[#00B074]/30 text-[#00B074]">
+              <span className="p-1 rounded-lg bg-[#E6F7F0] border border-[#00B074]/30 text-[#008A5B]">
                 <BarChart3 className="w-3.5 h-3.5" />
               </span>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-[#0B192C] uppercase tracking-wider">
                 Demanda Mayorista (Últimos 7 Días)
               </h3>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
               Volumen de órdenes y cotizaciones solicitadas por marca
             </p>
           </div>
 
           {/* Grouped vs Stacked pill */}
-          <div className="flex items-center bg-slate-900/90 p-0.5 rounded-lg border border-slate-800 text-[10px] font-semibold shrink-0">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-[10px] font-semibold shrink-0">
             <button
               type="button"
               onClick={() => setChartMode('grouped')}
-              className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer font-bold ${
                 chartMode === 'grouped'
-                  ? 'bg-[#00B074] text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-[#0B192C] shadow-xs'
+                  : 'text-slate-500 hover:text-[#0B192C]'
               }`}
             >
               Barras
@@ -100,10 +100,10 @@ export const BrandDemandChart: React.FC = () => {
             <button
               type="button"
               onClick={() => setChartMode('stacked')}
-              className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer font-bold ${
                 chartMode === 'stacked'
-                  ? 'bg-[#00B074] text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-[#0B192C] shadow-xs'
+                  : 'text-slate-500 hover:text-[#0B192C]'
               }`}
             >
               Apiladas
@@ -118,21 +118,21 @@ export const BrandDemandChart: React.FC = () => {
             onClick={() => setActiveBrand(activeBrand === 'Apple' ? 'all' : 'Apple')}
             className={`p-2 rounded-xl border transition-all text-left cursor-pointer ${
               activeBrand === 'Apple'
-                ? 'bg-[#38BDF8]/15 border-[#38BDF8] shadow-sm'
-                : 'bg-slate-900/70 border-slate-800 hover:border-slate-700'
+                ? 'bg-sky-50 border-sky-400 shadow-xs'
+                : 'bg-slate-50 border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div className="flex items-center justify-between text-[10px] font-medium text-slate-400">
-              <span className="flex items-center gap-1 text-slate-200 font-bold">
-                <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
+            <div className="flex items-center justify-between text-[10px] font-medium text-slate-500">
+              <span className="flex items-center gap-1 text-[#0B192C] font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#0284C7]" />
                 Apple
               </span>
-              <span className="font-mono text-[#38BDF8] font-bold">{applePct}%</span>
+              <span className="font-mono text-sky-700 font-bold">{applePct}%</span>
             </div>
-            <div className="text-sm font-black text-white font-mono mt-1">
+            <div className="text-sm font-black text-[#0B192C] font-mono mt-1">
               {totalApple.toLocaleString()}
             </div>
-            <span className="text-[9px] text-emerald-400 font-mono block">+18.5% sem.</span>
+            <span className="text-[9px] text-[#008A5B] font-mono block font-bold">+18.5% sem.</span>
           </button>
 
           <button
@@ -140,21 +140,21 @@ export const BrandDemandChart: React.FC = () => {
             onClick={() => setActiveBrand(activeBrand === 'Samsung' ? 'all' : 'Samsung')}
             className={`p-2 rounded-xl border transition-all text-left cursor-pointer ${
               activeBrand === 'Samsung'
-                ? 'bg-[#818CF8]/15 border-[#818CF8] shadow-sm'
-                : 'bg-slate-900/70 border-slate-800 hover:border-slate-700'
+                ? 'bg-indigo-50 border-indigo-400 shadow-xs'
+                : 'bg-slate-50 border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div className="flex items-center justify-between text-[10px] font-medium text-slate-400">
-              <span className="flex items-center gap-1 text-slate-200 font-bold">
-                <span className="w-2 h-2 rounded-full bg-[#818CF8]" />
+            <div className="flex items-center justify-between text-[10px] font-medium text-slate-500">
+              <span className="flex items-center gap-1 text-[#0B192C] font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#4F46E5]" />
                 Samsung
               </span>
-              <span className="font-mono text-[#818CF8] font-bold">{samsungPct}%</span>
+              <span className="font-mono text-indigo-700 font-bold">{samsungPct}%</span>
             </div>
-            <div className="text-sm font-black text-white font-mono mt-1">
+            <div className="text-sm font-black text-[#0B192C] font-mono mt-1">
               {totalSamsung.toLocaleString()}
             </div>
-            <span className="text-[9px] text-emerald-400 font-mono block">+9.2% sem.</span>
+            <span className="text-[9px] text-[#008A5B] font-mono block font-bold">+9.2% sem.</span>
           </button>
 
           <button
@@ -162,39 +162,39 @@ export const BrandDemandChart: React.FC = () => {
             onClick={() => setActiveBrand(activeBrand === 'Xiaomi' ? 'all' : 'Xiaomi')}
             className={`p-2 rounded-xl border transition-all text-left cursor-pointer ${
               activeBrand === 'Xiaomi'
-                ? 'bg-[#F97316]/15 border-[#F97316] shadow-sm'
-                : 'bg-slate-900/70 border-slate-800 hover:border-slate-700'
+                ? 'bg-orange-50 border-orange-400 shadow-xs'
+                : 'bg-slate-50 border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div className="flex items-center justify-between text-[10px] font-medium text-slate-400">
-              <span className="flex items-center gap-1 text-slate-200 font-bold">
-                <span className="w-2 h-2 rounded-full bg-[#F97316]" />
+            <div className="flex items-center justify-between text-[10px] font-medium text-slate-500">
+              <span className="flex items-center gap-1 text-[#0B192C] font-bold">
+                <span className="w-2 h-2 rounded-full bg-[#EA580C]" />
                 Xiaomi
               </span>
-              <span className="font-mono text-[#F97316] font-bold">{xiaomiPct}%</span>
+              <span className="font-mono text-orange-700 font-bold">{xiaomiPct}%</span>
             </div>
-            <div className="text-sm font-black text-white font-mono mt-1">
+            <div className="text-sm font-black text-[#0B192C] font-mono mt-1">
               {totalXiaomi.toLocaleString()}
             </div>
-            <span className="text-[9px] text-[#00B074] font-mono block font-bold">+24.1% sem.</span>
+            <span className="text-[9px] text-[#008A5B] font-mono block font-bold">+24.1% sem.</span>
           </button>
         </div>
 
         {/* Legend */}
         <div className="flex items-center justify-center gap-4 text-[11px] pt-1">
           {(activeBrand === 'all' || activeBrand === 'Apple') && (
-            <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#38BDF8]" /> Apple
+            <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#0284C7]" /> Apple
             </span>
           )}
           {(activeBrand === 'all' || activeBrand === 'Samsung') && (
-            <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#818CF8]" /> Samsung
+            <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#4F46E5]" /> Samsung
             </span>
           )}
           {(activeBrand === 'all' || activeBrand === 'Xiaomi') && (
-            <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#F97316]" /> Xiaomi
+            <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#EA580C]" /> Xiaomi
             </span>
           )}
         </div>
@@ -215,7 +215,7 @@ export const BrandDemandChart: React.FC = () => {
                     y1={y} 
                     x2={padLeft + chartW} 
                     y2={y} 
-                    stroke="#1E293B" 
+                    stroke="#E2E8F0" 
                     strokeDasharray="3 3"
                     strokeWidth="1"
                   />
@@ -223,7 +223,7 @@ export const BrandDemandChart: React.FC = () => {
                     x={padLeft - 4} 
                     y={y + 3} 
                     textAnchor="end" 
-                    fill="#64748B" 
+                    fill="#94A3B8" 
                     fontSize="9" 
                     fontFamily="monospace"
                   >
@@ -239,7 +239,7 @@ export const BrandDemandChart: React.FC = () => {
               y1={padTop + chartH} 
               x2={padLeft + chartW} 
               y2={padTop + chartH} 
-              stroke="#334155" 
+              stroke="#CBD5E1" 
               strokeWidth="1" 
             />
 
@@ -250,9 +250,9 @@ export const BrandDemandChart: React.FC = () => {
 
               if (chartMode === 'grouped') {
                 const brands: { key: 'Apple' | 'Samsung' | 'Xiaomi'; val: number; color: string }[] = [];
-                if (activeBrand === 'all' || activeBrand === 'Apple') brands.push({ key: 'Apple', val: d.Apple, color: '#38BDF8' });
-                if (activeBrand === 'all' || activeBrand === 'Samsung') brands.push({ key: 'Samsung', val: d.Samsung, color: '#818CF8' });
-                if (activeBrand === 'all' || activeBrand === 'Xiaomi') brands.push({ key: 'Xiaomi', val: d.Xiaomi, color: '#F97316' });
+                if (activeBrand === 'all' || activeBrand === 'Apple') brands.push({ key: 'Apple', val: d.Apple, color: '#0284C7' });
+                if (activeBrand === 'all' || activeBrand === 'Samsung') brands.push({ key: 'Samsung', val: d.Samsung, color: '#4F46E5' });
+                if (activeBrand === 'all' || activeBrand === 'Xiaomi') brands.push({ key: 'Xiaomi', val: d.Xiaomi, color: '#EA580C' });
 
                 const barWidth = Math.max(4, (colWidth - 8) / brands.length - 2);
 
@@ -271,7 +271,7 @@ export const BrandDemandChart: React.FC = () => {
                         y={padTop}
                         width={colWidth - 4}
                         height={chartH}
-                        fill="#38BDF8"
+                        fill="#00B074"
                         fillOpacity="0.08"
                         rx="4"
                       />
@@ -300,7 +300,7 @@ export const BrandDemandChart: React.FC = () => {
                       x={colX + colWidth / 2}
                       y={padTop + chartH + 16}
                       textAnchor="middle"
-                      fill={isHov ? '#38BDF8' : '#94A3B8'}
+                      fill={isHov ? '#0B192C' : '#64748B'}
                       fontSize="10"
                       fontFamily="monospace"
                       fontWeight={isHov ? 'bold' : 'normal'}
@@ -347,7 +347,7 @@ export const BrandDemandChart: React.FC = () => {
                       y={padTop}
                       width={colWidth - 4}
                       height={chartH}
-                      fill="#38BDF8"
+                      fill="#00B074"
                       fillOpacity="0.08"
                       rx="4"
                     />
@@ -359,7 +359,7 @@ export const BrandDemandChart: React.FC = () => {
                       y={yApple}
                       width={barW}
                       height={hApple}
-                      fill="#38BDF8"
+                      fill="#0284C7"
                       rx="1"
                     />
                   )}
@@ -369,7 +369,7 @@ export const BrandDemandChart: React.FC = () => {
                       y={ySamsung}
                       width={barW}
                       height={hSamsung}
-                      fill="#818CF8"
+                      fill="#4F46E5"
                       rx="1"
                     />
                   )}
@@ -379,7 +379,7 @@ export const BrandDemandChart: React.FC = () => {
                       y={yXiaomi}
                       width={barW}
                       height={hXiaomi}
-                      fill="#F97316"
+                      fill="#EA580C"
                       rx="2"
                     />
                   )}
@@ -389,7 +389,7 @@ export const BrandDemandChart: React.FC = () => {
                     x={colX + colWidth / 2}
                     y={padTop + chartH + 16}
                     textAnchor="middle"
-                    fill={isHov ? '#38BDF8' : '#94A3B8'}
+                    fill={isHov ? '#0B192C' : '#64748B'}
                     fontSize="10"
                     fontFamily="monospace"
                     fontWeight={isHov ? 'bold' : 'normal'}
@@ -403,22 +403,22 @@ export const BrandDemandChart: React.FC = () => {
 
           {/* Interactive Tooltip Card */}
           {hoveredData && (
-            <div className="mt-2 bg-[#0B192C] border border-slate-700 rounded-xl p-3 shadow-2xl text-xs space-y-1.5 transition-all">
-              <div className="flex items-center justify-between border-b border-slate-700/80 pb-1 font-mono">
-                <span className="font-bold text-white">{hoveredData.day} ({hoveredData.date})</span>
-                <span className="text-[#00B074] font-bold">{hoveredData.total.toLocaleString()} uds total</span>
+            <div className="mt-2 bg-white border border-slate-200 rounded-xl p-3 shadow-lg text-xs space-y-1.5 transition-all text-[#0B192C]">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-1 font-mono">
+                <span className="font-bold text-[#0B192C]">{hoveredData.day} ({hoveredData.date})</span>
+                <span className="text-[#008A5B] font-bold">{hoveredData.total.toLocaleString()} uds total</span>
               </div>
               <div className="grid grid-cols-3 gap-2 text-[11px] pt-0.5">
-                <div className="flex items-center gap-1.5 font-medium text-[#38BDF8]">
-                  <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
+                <div className="flex items-center gap-1.5 font-medium text-sky-700">
+                  <span className="w-2 h-2 rounded-full bg-[#0284C7]" />
                   <span>Apple: <strong>{hoveredData.Apple.toLocaleString()}</strong></span>
                 </div>
-                <div className="flex items-center gap-1.5 font-medium text-[#818CF8]">
-                  <span className="w-2 h-2 rounded-full bg-[#818CF8]" />
+                <div className="flex items-center gap-1.5 font-medium text-indigo-700">
+                  <span className="w-2 h-2 rounded-full bg-[#4F46E5]" />
                   <span>Samsung: <strong>{hoveredData.Samsung.toLocaleString()}</strong></span>
                 </div>
-                <div className="flex items-center gap-1.5 font-medium text-[#F97316]">
-                  <span className="w-2 h-2 rounded-full bg-[#F97316]" />
+                <div className="flex items-center gap-1.5 font-medium text-orange-700">
+                  <span className="w-2 h-2 rounded-full bg-[#EA580C]" />
                   <span>Xiaomi: <strong>{hoveredData.Xiaomi.toLocaleString()}</strong></span>
                 </div>
               </div>
@@ -427,12 +427,12 @@ export const BrandDemandChart: React.FC = () => {
         </div>
 
         {/* Market Trend Insight footer */}
-        <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-800 text-slate-300">
-          <span className="flex items-center gap-1.5 text-slate-400">
-            <TrendingUp className="w-3.5 h-3.5 text-[#00B074]" />
-            <span>Tendencia: <strong className="text-white font-semibold">Demanda en pico récord hoy</strong></span>
+        <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-100 text-slate-600">
+          <span className="flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-[#008A5B]" />
+            <span>Tendencia: <strong className="text-[#0B192C] font-semibold">Demanda en pico récord hoy</strong></span>
           </span>
-          <span className="font-mono text-[#00B074] font-bold">
+          <span className="font-mono text-[#008A5B] font-bold">
             Total 7D: {grandTotal.toLocaleString()} uds
           </span>
         </div>
